@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import bcryptjs from 'bcryptjs'
 import { authRoute } from '../routes/auth.js'
+import { sign } from '../lib/jwt.js'
 import { Hono } from 'hono'
 
 vi.mock('../db/client.js', () => ({
@@ -137,5 +138,43 @@ describe('POST /api/auth/logout', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.ok).toBe(true)
+  })
+})
+
+describe('GET /api/auth/me', () => {
+  beforeEach(() => {
+    process.env.JWT_SECRET = 'test-secret-key'
+  })
+
+  function buildApp() {
+    const app = new Hono()
+    app.route('/api/auth', authRoute)
+    return app
+  }
+
+  it('有効な Cookie で playerId と name を返す', async () => {
+    const token = await sign({ sub: 'player-1', name: 'テストプレイヤー' })
+    const app = buildApp()
+    const res = await app.request('/api/auth/me', {
+      headers: { Cookie: `token=${token}` },
+    })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.playerId).toBe('player-1')
+    expect(body.name).toBe('テストプレイヤー')
+  })
+
+  it('Cookie なしで 401 を返す', async () => {
+    const app = buildApp()
+    const res = await app.request('/api/auth/me')
+    expect(res.status).toBe(401)
+  })
+
+  it('無効なトークンで 401 を返す', async () => {
+    const app = buildApp()
+    const res = await app.request('/api/auth/me', {
+      headers: { Cookie: 'token=invalid.token.here' },
+    })
+    expect(res.status).toBe(401)
   })
 })

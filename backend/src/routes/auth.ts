@@ -7,6 +7,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import { players } from '../db/schema.js'
 import { sign } from '../lib/jwt.js'
+import { authMiddleware } from '../middleware/auth.js'
 
 const loginSchema = z.object({
   playerName: z.string().min(1),
@@ -45,4 +46,8 @@ export const authRoute = new Hono()
   .post('/logout', (c) => {
     deleteCookie(c, 'token', { path: '/' })
     return c.json({ ok: true })
+  })
+  .get('/me', authMiddleware, (c) => {
+    const payload = c.get('jwtPayload')
+    return c.json({ playerId: payload.sub, name: payload.name })
   })
