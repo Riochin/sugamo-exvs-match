@@ -22,5 +22,5 @@ export async function sign(payload: Omit<JwtPayload, 'iat' | 'exp'>): Promise<st
 export async function verify(token: string): Promise<JwtPayload> {
   const secret = getSecret()
   const payload = await honoVerify(token, secret, 'HS256')
-  return payload as JwtPayload
+  return payload as unknown as JwtPayload
 }

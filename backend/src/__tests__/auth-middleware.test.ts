@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { Hono } from 'hono'
-import { getCookie } from 'hono/cookie'
-import { sign } from '../lib/jwt.js'
+import { sign, type JwtPayload } from '../lib/jwt.js'
 import { authMiddleware } from '../middleware/auth.js'
 
 describe('authMiddleware', () => {
@@ -10,7 +9,7 @@ describe('authMiddleware', () => {
   })
 
   function buildApp() {
-    const app = new Hono()
+    const app = new Hono<{ Variables: { jwtPayload: JwtPayload } }>()
     app.use('/protected', authMiddleware)
     app.get('/protected', (c) => {
       const payload = c.get('jwtPayload')
