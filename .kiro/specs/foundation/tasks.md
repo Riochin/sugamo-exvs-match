@@ -1,14 +1,14 @@
 # 実装計画
 
-- [ ] 1. モノレポ・開発環境の基盤構築
-- [ ] 1.1 pnpm workspaces 構成とルートスクリプトを設定する
+- [x] 1. モノレポ・開発環境の基盤構築
+- [x] 1.1 pnpm workspaces 構成とルートスクリプトを設定する
   - ルートに `pnpm-workspace.yaml` を作成し `frontend` と `backend` をワークスペースとして定義する
   - ルート `package.json` に `dev`（両ワークスペース同時起動）・`build`・`lint` スクリプトを定義する
   - `frontend/package.json` と `backend/package.json` をそれぞれ作成し、各ワークスペースのスコープ内でのみパッケージインストールが行われることを確認する
   - `pnpm install` 後に `pnpm dev` で両サーバーが起動することで完了とする
   - _Requirements: 1.1, 1.4, 1.5_
 
-- [ ] 1.2 TypeScript strict モードと ESLint no-explicit-any を全ワークスペースで有効化する
+- [x] 1.2 TypeScript strict モードと ESLint no-explicit-any を全ワークスペースで有効化する
   - `backend/tsconfig.json` に `"strict": true` および TypeScript Project References 向け `"composite": true` を設定する
   - `frontend/tsconfig.json` に `"strict": true` を設定し、`backend` を references に追加して型を共有できるようにする
   - ルートまたは各ワークスペースの ESLint 設定で `@typescript-eslint/no-explicit-any: "error"` を有効化する
