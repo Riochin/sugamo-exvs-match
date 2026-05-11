@@ -47,8 +47,8 @@
   - 認証成功時に JWT を署名して `HttpOnly; SameSite=Lax` Cookie にセットし `{ playerId, name }` を返す。PIN が DB に平文保存されていないことを確認できることで完了とする
   - _Requirements: 3.1, 3.2, 3.3, 3.6_
 
-- [ ] 4. Hono API ルート骨格と AppType 公開
-- [ ] 4.1 (P) 認証不要のプレイヤー一覧ルートと各ドメインルート骨格を実装する
+- [x] 4. Hono API ルート骨格と AppType 公開
+- [x] 4.1 (P) 認証不要のプレイヤー一覧ルートと各ドメインルート骨格を実装する
   - `backend/src/routes/players.ts` に `GET /api/players`（認証なしで全プレイヤー一覧を返す）を実装する
   - `backend/src/routes/events.ts`・`scores.ts`・`stars.ts` を作成し、後続機能スペック向けの空のルート骨格を配置する
   - 認証が必要なルートに `authMiddleware` を適用し、未認証アクセスで HTTP 401 が返る構造にする
@@ -56,7 +56,7 @@
   - _Requirements: 3.7, 4.2, 4.4, 4.5_
   - _Boundary: RouteHandlers_
 
-- [ ] 4.2 (P) SSE エンドポイントとブロードキャスト Hub を実装する
+- [x] 4.2 (P) SSE エンドポイントとブロードキャスト Hub を実装する
   - `backend/src/routes/stream.ts` に `GET /api/stream/events/:eventId` を Hono `streamSSE` で実装する
   - `Map<eventId, Set<SSEStreamingApi>>` をモジュールスコープで管理し、接続時に `add`・切断時に `remove` する Hub（`add`・`remove`・`broadcast` の 3 メソッド）を実装する
   - `broadcast` 関数で `progress_update`・`result_ready`・`phase_update` の 3 イベント型を受け取り、同一 `eventId` に接続中の全クライアントへ送信できるようにする
@@ -65,7 +65,7 @@
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7_
   - _Boundary: SSEHub_
 
-- [ ] 4.3 Hono アプリを統合して AppType を公開し Railway デプロイ設定を追加する
+- [x] 4.3 Hono アプリを統合して AppType を公開し Railway デプロイ設定を追加する
   - `backend/src/index.ts` に全ルート（auth・players・events・scores・stars・stream）を `.route()` でマウントした Hono アプリを作成する
   - `export type AppType = typeof app` をモジュールから公開し、フロントエンドの TypeScript Project References 経由で参照できるようにする
   - `backend/Procfile` に Railway 向けの起動コマンドを定義する
