@@ -55,9 +55,9 @@
 
 ---
 
-- [ ] 3. Integration — LoginViewとルーター統合
+- [x] 3. Integration — LoginViewとルーター統合
 
-- [ ] 3.1 ログイン画面（LoginView）を実装してステップフローを完成させる
+- [x] 3.1 ログイン画面（LoginView）を実装してステップフローを完成させる
   - `meta: { requiresAuth: false, layout: 'plain' }` をルートに設定し `AppLayout`・`BottomNav` が表示されないページとして実装する
   - `onMounted` で Hono RPC Client 経由で `GET /api/players` を呼び出し、`players`・`playersLoading`・`playersError` を管理してPlayerSelectStepへ渡す
   - `playersError` 発生時は `retry` イベントをハンドルして再フェッチできるようにする
@@ -68,7 +68,7 @@
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.8_
   - _Depends: 2.1, 2.2, 2.3_
 
-- [ ] 3.2 (P) ルートガードとApp.vueレイアウト分岐を実装する
+- [x] 3.2 (P) ルートガードとApp.vueレイアウト分岐を実装する
   - `frontend/src/router/index.ts` に `/login` ルート（`requiresAuth: false, layout: 'plain'`）を追加し、既存ルート（`/`・`/group`・`/profile`）に `requiresAuth: true` を設定する
   - `vue-router` モジュールの `RouteMeta` 型に `requiresAuth?: boolean` と `layout?: 'default' | 'plain'` を宣言拡張する
   - `beforeEach` ナビゲーションガードに `restoreSession()` を初回のみ await するフラグを持たせ、`isLoading` が `true` の間はガード評価を待機させる
