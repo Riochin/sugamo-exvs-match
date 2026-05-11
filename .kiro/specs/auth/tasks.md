@@ -4,15 +4,15 @@
 
 ---
 
-- [ ] 1. Foundation — バックエンド拡張とseedスクリプト
+- [x] 1. Foundation — バックエンド拡張とseedスクリプト
 
-- [ ] 1.1 `GET /api/auth/me` エンドポイントを追加する
+- [x] 1.1 `GET /api/auth/me` エンドポイントを追加する
   - `backend/src/routes/auth.ts` に `authMiddleware` を適用した `GET /me` ルートを追加する
   - `c.get('jwtPayload')` から `sub`（playerId）と `name` を取得して `{ playerId, name }` をJSONで返す
   - `AppType` に自動反映され、Hono RPC Client 経由でフロントエンドから型安全に呼び出せること
   - _Requirements: 3.2, 3.4_
 
-- [ ] 1.2 プレイヤーseedスクリプトを実装する
+- [x] 1.2 プレイヤーseedスクリプトを実装する
   - `backend/src/db/seed.ts` にプレイヤー12名分の定数データ配列（名前・平文PIN・チーム等）を定義する
   - `bcryptjs.hash(pin, 10)` でPINをハッシュ化してから Drizzle で `players` テーブルへ INSERT する
   - `onConflictDoNothing()` を使用し、同じプレイヤー名が既に存在する場合はスキップして冪等に実行する
