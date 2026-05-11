@@ -73,17 +73,17 @@
   - _Depends: 4.1, 4.2_
   - _Requirements: 4.1, 4.3, 4.6_
 
-- [ ] 5. (P) Vue SPA 骨格と共通 UI テーマ
-- [ ] 5.1 Vite・Vue 3 プロジェクトを初期化し Tailwind ダークテーマを設定する
+- [x] 5. (P) Vue SPA 骨格と共通 UI テーマ
+- [x] 5.1 Vite・Vue 3 プロジェクトを初期化し Tailwind ダークテーマを設定する
   - `frontend/` に Vue 3 + TypeScript + Vite プロジェクトを作成し、`frontend/src/main.ts` をエントリポイントとする
-  - `tailwind.config.ts` に `base-900: #090014`・`base-800: #12002b`・`base-600: #2b008e`・`accent: #d946ef` のカスタムカラーを定義する
+  - `tailwind.config.ts` に `base-900: #090014`・`base-800: #12002b`・`base-600: #2b008e`・`accent: #c20e00`・`#0d36ac`, #ffffff のカスタムカラーを定義する
   - `index.html` の `<html>` タグに `class="dark"` を追加してダークテーマを固定する
   - `vite.config.ts` と `tsconfig.json` に `@/` → `frontend/src/` のパスエイリアスを設定する
   - `pnpm dev` でフロントエンドが起動し、ダークテーマとカスタムカラーが Tailwind から利用できることで完了とする
   - _Requirements: 6.1, 6.2, 6.3, 6.8_
   - _Boundary: VueSPA, TailwindConfig_
 
-- [ ] 5.2 共通レイアウトとボトムナビゲーションコンポーネントを実装する
+- [x] 5.2 共通レイアウトとボトムナビゲーションコンポーネントを実装する
   - `frontend/src/components/AppLayout.vue` を作成し、`<slot>` で画面コンテンツを受け取り下部に `BottomNav.vue` を配置するレイアウトシェルを実装する
   - `frontend/src/components/BottomNav.vue` を作成し、Vue Router の `<RouterLink>` でメインタブ（大会・グループ・プロフィール）へのナビゲーションとアクティブ状態表示を実装する
   - スマートフォン縦画面（375px〜430px 幅）に最適化されたスタイルを Tailwind で適用し、画面幅 430px 超ではコンテナを中央揃えにする
