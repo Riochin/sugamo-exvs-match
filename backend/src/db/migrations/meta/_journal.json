@@ -8,6 +8,13 @@
       "when": 1778465584988,
       "tag": "0000_dusty_songbird",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1778502056136,
+      "tag": "0001_volatile_magdalene",
+      "breakpoints": true
     }
   ]
 }

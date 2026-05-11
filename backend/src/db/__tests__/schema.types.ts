@@ -9,6 +9,7 @@ const _player: Player = {
   title: null,
   mainUnit: null,
   createdAt: new Date(),
+  isAdmin: false,
 }
 
 // team enum の検証
@@ -20,6 +21,7 @@ const _player2: Player = {
   title: '称号',
   mainUnit: 'ユニット名',
   createdAt: new Date(),
+  isAdmin: true,
 }
 
 // Event 型の検証

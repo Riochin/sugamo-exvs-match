@@ -8,6 +8,7 @@ export const players = sqliteTable('players', {
   title: text('title'),
   mainUnit: text('main_unit'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  isAdmin: integer('is_admin', { mode: 'boolean' }).notNull().default(false),
 })
 
 export const events = sqliteTable('events', {
