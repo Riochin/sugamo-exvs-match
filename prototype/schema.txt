@@ -1,0 +1,128 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"] // Turso (エッジSQLite) を使うために必要
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------
+// 1. プレイヤー (Players)
+// ------------------------------------------------------
+model Player {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  pinCode     String   // 4桁のPINコード (簡易ログイン用)
+  currentGroup Int     // 1 (1軍) または 2 (2軍)
+  mainChar    String?  // 得意機体 (プロフ用)
+  role        String   @default("USER") // 権限 ("ADMIN" または "USER")
+  
+  // リレーション (1人のプレイヤーは複数の成績や称号を持つ)
+  scores        Score[]
+  achievements  PlayerAchievement[]
+  
+  // ★追加: Starのリレーション
+  sentStars     Star[] @relation("SentStars")
+  receivedStars Star[] @relation("ReceivedStars")
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ------------------------------------------------------
+// 2. 開催情報・大会 (Events / Tournaments)
+// ------------------------------------------------------
+model Event {
+  id        Int      @id @default(autoincrement()) // 例: 第24回 なら 24
+  status    String   @default("active")            // "active" (開催中) | "finished" (完了)
+  date      DateTime @default(now())               // 開催日
+  
+  // リレーション (1回の大会には複数の成績が紐づく)
+  scores    Score[]
+  
+  // ★追加: 大会内で送られたStar
+  stars     Star[]
+}
+
+// ------------------------------------------------------
+// 3. 成績 (Scores) - 誰がどの大会でどんな成績だったか
+// ------------------------------------------------------
+model Score {
+  id          String @id @default(cuid())
+  eventId     Int
+  playerId    String
+  
+  // その大会での入力データ
+  playCount   Int    @default(0) // 対戦数
+  winCount    Int    @default(0) // 勝利数
+  winRate     Float  @default(0) // 勝率 (0.0 ~ 100.0)
+  usedChar    String?            // その大会で使用した機体
+  isAbsent    Boolean @default(false) // お休みフラグ
+  
+  // ★変更: 過去の所属チーム履歴
+  groupBefore Int    @default(2) // 大会開始前の所属 (1=1軍, 2=2軍)
+  groupAfter  Int?               // 大会結果による新しい所属 (結果確定後にセット)
+  
+  // 結果データ
+  rank        Int?   // 最終順位 (確定後にセット)
+  
+  // リレーション
+  event       Event  @relation(fields: [eventId], references: [id])
+  player      Player @relation(fields: [playerId], references: [id])
+
+  // 同じ大会で同じプレイヤーは1つの成績しか持たないという制約
+  @@unique([eventId, playerId])
+}
+
+// ------------------------------------------------------
+// 4. 称号マスタ (Achievements)
+// ------------------------------------------------------
+model Achievement {
+  id          String @id @default(cuid())
+  name        String // 例: "絶対王者"
+  description String // 例: "1軍で勝率1位を達成した証"
+  
+  // リレーション
+  players     PlayerAchievement[]
+}
+
+// ------------------------------------------------------
+// 5. プレイヤーが持つ称号 (中間テーブル)
+// ------------------------------------------------------
+model PlayerAchievement {
+  playerId      String
+  achievementId String
+  unlockedAt    DateTime @default(now()) // いつ獲得したか
+
+  // リレーション
+  player        Player      @relation(fields: [playerId], references: [id])
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+
+  // 複合主キー (同じ人に同じ称号を複数回は付けない想定)
+  @@id([playerId, achievementId])
+}
+
+// ------------------------------------------------------
+// 6. スター機能 (Stars) - 誰が誰に送ったか
+// ------------------------------------------------------
+model Star {
+  id         String   @id @default(cuid())
+  eventId    Int
+  senderId   String   // 送った人
+  receiverId String   // 受け取った人
+  createdAt  DateTime @default(now())
+
+  // リレーション
+  event      Event    @relation(fields: [eventId], references: [id])
+  sender     Player   @relation("SentStars", fields: [senderId], references: [id])
+  receiver   Player   @relation("ReceivedStars", fields: [receiverId], references: [id])
+
+  // 注意: 以下の制約はHono(バックエンド)のプログラム側で実装する
+  // 1. 1つの大会につき、1人最大3つまでしかStarを送れない
+  // 2. senderId == receiverId (自分自身への投票) は不可
+}
