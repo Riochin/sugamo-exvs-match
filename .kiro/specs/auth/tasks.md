@@ -80,16 +80,16 @@
 
 ---
 
-- [ ] 4. Validation — テスト
+- [x] 4. Validation — テスト
 
-- [ ]* 4.1 useAuth の単体テストを追加する
+- [x]* 4.1 useAuth の単体テストを追加する
   - `login()` 成功時に `currentPlayer` が対象プレイヤーの情報にセットされること
   - `login()` 401時に `LoginResult.ok === false` かつ `errorCode === 'INVALID_CREDENTIALS'` が返ること
   - `logout()` がAPIエラーでも `currentPlayer` が `null` にクリアされること
   - `restoreSession()` 401時に `currentPlayer` が `null` のままであること
   - _Requirements: 3.1, 3.2, 3.4, 5.1, 5.2, 5.3_
 
-- [ ]* 4.2 ログインフローとルートガードの統合テストを追加する
+- [x]* 4.2 ログインフローとルートガードの統合テストを追加する
   - MSWモックAPIを使い、プレイヤー選択 → PIN入力 → `POST /api/auth/login` → リダイレクトの一連フローが正常動作すること
   - 未認証状態で `/` にアクセスすると `/login` へリダイレクトされること
   - 認証済みで `/login` にアクセスすると `/` へリダイレクトされること
