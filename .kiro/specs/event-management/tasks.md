@@ -17,14 +17,14 @@
 
 ## タスク 2: バックエンドコア — 管理者ミドルウェアとイベントサービス
 
-- [ ] 2.1 (P) 管理者認可ミドルウェアを実装する
+- [x] 2.1 (P) 管理者認可ミドルウェアを実装する
   - `authMiddleware` が設定した `c.var.jwtPayload.isAdmin` を読み取り、`false` の場合は 403 を返す
   - Hono RPC の型推論を維持するため `MiddlewareHandler<{ Variables: Variables }>` 型で実装する
   - 非管理者からのリクエストが 403 で拒否され、管理者は次のハンドラへ進むことを確認する
   - _Requirements: 1.4, 2.5, 3.5, 5.1, 5.2, 5.3_
   - _Boundary: adminMiddleware_
 
-- [ ] 2.2 (P) `EventService` の全ビジネスロジックを実装する
+- [x] 2.2 (P) `EventService` の全ビジネスロジックを実装する
   - 大会作成: 進行中大会（`COLLECTING` または `REVEALING`）の存在チェックを行い、存在する場合は `ACTIVE_EVENT_EXISTS` エラーを返す。存在しない場合は `events` レコードと全プレイヤー分の `scores` レコード（`wins=0, losses=0, absent=false`）をバッチ挿入する
   - 欠席管理: `COLLECTING` フェーズ中のみ `scores.absent` を更新し、それ以外は `PHASE_NOT_COLLECTING` エラーを返す
   - フェーズ遷移: 遷移マップ `{ COLLECTING: 'REVEALING', REVEALING: 'DONE' }` を使い、`DONE` からの遷移要求は `INVALID_PHASE_TRANSITION` エラーを返す。DB 更新成功後に `hub.broadcast` で `{ eventId, phase }` ペイロードの `phase_update` イベントを送出する
