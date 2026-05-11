@@ -6,9 +6,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        'base-900': '#090014',
-        'base-800': '#12002b',
-        'base-600': '#2b008e',
+        bg: '#b38ec7',
+        'bg-sub': '#9681a2',
+        main: '#2b008e',
+        dark: '#12002b',
+        // サブカラー（現在未使用）
         accent: '#c20e00',
         brand: '#0d36ac',
       },
