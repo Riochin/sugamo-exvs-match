@@ -16,7 +16,7 @@
         pattern="\d"
         maxlength="1"
         autocomplete="off"
-        class="h-14 w-12 rounded-lg border border-base-600 bg-base-800 text-center text-2xl text-white focus:border-accent focus:outline-none disabled:opacity-50"
+        class="h-14 w-12 rounded-lg border border-main bg-dark text-center text-2xl text-white focus:border-accent focus:outline-none disabled:opacity-50"
         @input="onInput(i, $event)"
         @keydown="onKeydown(i, $event)"
       />
@@ -36,7 +36,7 @@
 
     <button
       data-testid="back-button"
-      class="w-full rounded-lg border border-base-600 py-3 text-gray-300"
+      class="w-full rounded-lg border border-main py-3 text-gray-300"
       @click="emit('back')"
     >
       戻る

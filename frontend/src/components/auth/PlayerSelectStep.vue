@@ -10,7 +10,7 @@
       <p data-testid="error-message" class="mb-3 text-center text-red-400">{{ error }}</p>
       <button
         data-testid="retry-button"
-        class="w-full rounded-lg bg-base-600 py-3 text-white"
+        class="w-full rounded-lg bg-main py-3 text-white"
         @click="emit('retry')"
       >
         再読み込み
@@ -22,7 +22,7 @@
         v-for="player in players"
         :key="player.id"
         data-testid="player-card"
-        class="flex min-h-[56px] cursor-pointer items-center rounded-lg bg-base-800 px-4 py-3 text-white active:opacity-70"
+        class="flex min-h-[56px] cursor-pointer items-center rounded-lg bg-dark px-4 py-3 text-white active:opacity-70"
         @click="emit('select', player.name)"
       >
         <span class="font-semibold">{{ player.name }}</span>
