@@ -2,13 +2,13 @@
 
 ## タスク 1: 基盤設定 — DB スキーマ・JWT・認証拡張
 
-- [ ] 1.1 Drizzle スキーマに `isAdmin` カラムを追加しマイグレーションを適用する
+- [x] 1.1 Drizzle スキーマに `isAdmin` カラムを追加しマイグレーションを適用する
   - `players` テーブルに `is_admin INTEGER NOT NULL DEFAULT 0` カラムを Drizzle スキーマ定義で追加する
   - `drizzle-kit migrate` でマイグレーションファイルを生成し、Turso に適用する
   - マイグレーション適用後、既存プレイヤーの `is_admin` が `false` のまま正常動作することを確認する
   - _Requirements: 5.1, 5.4_
 
-- [ ] 1.2 JWT ペイロードと認証ルートに `isAdmin` クレームを反映する
+- [x] 1.2 JWT ペイロードと認証ルートに `isAdmin` クレームを反映する
   - `JwtPayload` インターフェースに `isAdmin: boolean` フィールドを追加する
   - `auth.ts` の `sign()` 関数が DB から取得した `player.isAdmin` を JWT に含めるよう修正する
   - `/me` エンドポイントのレスポンスに `isAdmin` フィールドを追加する
