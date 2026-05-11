@@ -22,9 +22,9 @@
 
 ---
 
-- [ ] 2. Core — フロントエンドコアコンポーネントの実装
+- [x] 2. Core — フロントエンドコアコンポーネントの実装
 
-- [ ] 2.1 (P) 認証状態管理composable（useAuth）を実装する
+- [x] 2.1 (P) 認証状態管理composable（useAuth）を実装する
   - モジュールスコープの `currentPlayer` ref と `isLoading` ref をシングルトンとして定義し、`useAuth()` 呼び出しごとに同一インスタンスを参照できるようにする
   - `login(playerName, pin)` が Hono RPC Client 経由で `POST /api/auth/login` を呼び出し、成功時に `currentPlayer` をセットして `{ ok: true }` を返す
   - `login()` が 401を受けた場合は `{ ok: false, errorCode: 'INVALID_CREDENTIALS' }` を、400の場合は `{ ok: false, errorCode: 'VALIDATION_ERROR' }` を返す
@@ -34,7 +34,7 @@
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 5.1, 5.2, 5.3_
   - _Boundary: useAuth_
 
-- [ ] 2.2 (P) プレイヤー選択ステップコンポーネントを実装する
+- [x] 2.2 (P) プレイヤー選択ステップコンポーネントを実装する
   - `players`・`isLoading`・`error` をpropsとして受け取るpresentationalコンポーネントとして実装する
   - プレイヤーを最小タップ領域 `min-h-[56px]` 以上のカード形式で一覧表示する
   - `isLoading` 中はスピナーまたはスケルトンを表示する
@@ -43,7 +43,7 @@
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
   - _Boundary: PlayerSelectStep_
 
-- [ ] 2.3 (P) PIN入力ステップコンポーネントを実装する
+- [x] 2.3 (P) PIN入力ステップコンポーネントを実装する
   - `playerName`・`isSubmitting`・`error` をpropsとして受け取るpresentationalコンポーネントとして実装する
   - 選択されたプレイヤー名を画面上部に表示する
   - `inputmode="numeric" pattern="\d" maxlength="1"` の input を4つ横並び（OTPスタイル）に配置し、入力ごとに次フィールドへ自動フォーカスする
