@@ -2,7 +2,7 @@ import type { MiddlewareHandler } from 'hono'
 import { getCookie } from 'hono/cookie'
 import { verify, type JwtPayload } from '../lib/jwt.js'
 
-type Variables = {
+export type Variables = {
   jwtPayload: JwtPayload
 }
 
