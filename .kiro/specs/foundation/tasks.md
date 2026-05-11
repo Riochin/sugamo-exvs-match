@@ -15,8 +15,8 @@
   - `pnpm lint` が `any` 型使用箇所でエラーを報告することで完了とする
   - _Requirements: 1.2, 1.3_
 
-- [ ] 2. Drizzle スキーマ定義と DB クライアント設定
-- [ ] 2.1 全テーブルの Drizzle スキーマを定義し型を公開する
+- [x] 2. Drizzle スキーマ定義と DB クライアント設定
+- [x] 2.1 全テーブルの Drizzle スキーマを定義し型を公開する
   - `backend/src/db/schema.ts` に `players`・`events`・`scores`・`stars` テーブルを `drizzle-orm/sqlite-core` で定義する
   - `players` テーブルに `id`・`name`（unique）・`pinHash`・`team`（`FIRST|SECOND` enum）・`title`・`mainUnit`・`createdAt` カラムを持たせる
   - `events` テーブルに `id`・`heldAt`・`phase`（`COLLECTING|REVEALING|DONE` enum）・`createdAt` カラムを持たせる
@@ -25,7 +25,7 @@
   - `$inferSelect` 型（`Player`・`Event`・`Score`・`Star`）を export し、TypeScript コンパイルがエラーなく通ることで完了とする
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 2.2 Drizzle クライアントを初期化し Turso 向けマイグレーション設定を整える
+- [x] 2.2 Drizzle クライアントを初期化し Turso 向けマイグレーション設定を整える
   - `backend/src/db/client.ts` に `@libsql/client` と `drizzle-orm/libsql` を使った Drizzle クライアントシングルトンを実装する
   - `TURSO_DATABASE_URL`・`TURSO_AUTH_TOKEN` 環境変数を読み込み、未設定時に起動エラーで検知できるようにする
   - `backend/drizzle.config.ts` に `dialect: 'turso'`・`dbCredentials`・マイグレーション出力先（`backend/src/db/migrations/`）を設定する
