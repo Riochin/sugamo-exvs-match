@@ -1,0 +1,17 @@
+{
+  "name": "sugamo-exvs-match",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel --filter './backend' --filter './frontend' dev",
+    "build": "pnpm --filter './backend' build && pnpm --filter './frontend' build",
+    "lint": "eslint backend/src/ frontend/src/"
+  },
+  "devDependencies": {
+    "eslint": "^9.27.0",
+    "typescript-eslint": "^8.32.0",
+    "eslint-plugin-vue": "^9.33.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  }
+}
