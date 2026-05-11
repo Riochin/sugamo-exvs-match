@@ -32,15 +32,15 @@
   - `drizzle-kit generate` でマイグレーション SQL が生成され、`drizzle-kit migrate` で Turso に適用できることで完了とする
   - _Requirements: 2.6, 2.7_
 
-- [ ] 3. バックエンド認証基盤（JWT + PIN）
-- [ ] 3.1 JWT ヘルパーと認証ミドルウェアを実装する
+- [x] 3. バックエンド認証基盤（JWT + PIN）
+- [x] 3.1 JWT ヘルパーと認証ミドルウェアを実装する
   - `backend/src/lib/jwt.ts` に HS256・有効期限 24 時間の JWT 署名（`sign`）と検証（`verify`）ヘルパーを実装し、ペイロードに `sub`（playerId）と `name` を格納する
   - `JWT_SECRET` 環境変数から秘密鍵を取得し、未設定時に起動エラーで検知する
   - `backend/src/middleware/auth.ts` に HttpOnly Cookie からトークンを取り出して `verify` し、成功時に `c.set('jwtPayload', payload)` でコンテキストにセットする Hono ミドルウェアを実装する
   - 無効・失効トークンでのアクセス時に HTTP 401 が返ることで完了とする
   - _Requirements: 3.2, 3.4, 3.5_
 
-- [ ] 3.2 PIN 認証エンドポイントを実装する
+- [x] 3.2 PIN 認証エンドポイントを実装する
   - `backend/src/routes/auth.ts` に `POST /api/auth/login` と `POST /api/auth/logout` を実装する
   - `zValidator` で `playerName`（文字列）と `pin`（4 桁数字）のバリデーションを行い、失敗時に HTTP 400 を返す
   - DB からプレイヤーを名前で検索し `bcryptjs.compare` で PIN ハッシュを検証する。プレイヤー未存在・PIN 不一致いずれも HTTP 401 と `{ error: "Invalid credentials" }` を返す
