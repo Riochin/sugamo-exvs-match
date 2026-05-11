@@ -19,7 +19,7 @@ describe('authMiddleware', () => {
   }
 
   it('有効な Cookie トークンで 200 と jwtPayload をセットする', async () => {
-    const token = await sign({ sub: 'player-1', name: 'テストプレイヤー' })
+    const token = await sign({ sub: 'player-1', name: 'テストプレイヤー', isAdmin: false })
     const app = buildApp()
     const res = await app.request('/protected', {
       headers: { Cookie: `token=${token}` },
@@ -50,7 +50,7 @@ describe('authMiddleware', () => {
 
   it('別シークレットで署名されたトークンで 401 を返す', async () => {
     process.env.JWT_SECRET = 'secret-a'
-    const token = await sign({ sub: 'player-1', name: 'テスト' })
+    const token = await sign({ sub: 'player-1', name: 'テスト', isAdmin: false })
     process.env.JWT_SECRET = 'secret-b'
     const app = buildApp()
     const res = await app.request('/protected', {

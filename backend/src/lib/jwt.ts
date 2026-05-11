@@ -3,6 +3,7 @@ import { sign as honoSign, verify as honoVerify } from 'hono/jwt'
 export interface JwtPayload {
   sub: string
   name: string
+  isAdmin: boolean
   iat?: number
   exp?: number
 }

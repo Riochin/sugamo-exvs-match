@@ -36,6 +36,7 @@ describe('POST /api/auth/login', () => {
           title: null,
           mainUnit: null,
           createdAt: new Date(),
+          isAdmin: false,
         }]),
       }),
     })
@@ -53,6 +54,40 @@ describe('POST /api/auth/login', () => {
     const setCookie = res.headers.get('set-cookie')
     expect(setCookie).toContain('token=')
     expect(setCookie).toContain('HttpOnly')
+  })
+
+  it('管理者ログインで isAdmin: true を含む JWT Cookie を返す', async () => {
+    const pinHash = await bcryptjs.hash('0000', 10)
+    const { db } = await import('../db/client.js')
+    const mockSelect = db.select as ReturnType<typeof vi.fn>
+    mockSelect.mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        where: vi.fn().mockResolvedValue([{
+          id: 'admin-1',
+          name: '管理者',
+          pinHash,
+          team: 'FIRST',
+          title: null,
+          mainUnit: null,
+          createdAt: new Date(),
+          isAdmin: true,
+        }]),
+      }),
+    })
+
+    const app = buildApp()
+    const res = await app.request('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerName: '管理者', pin: '0000' }),
+    })
+    expect(res.status).toBe(200)
+    const setCookieHeader = res.headers.get('set-cookie') ?? ''
+    const tokenMatch = setCookieHeader.match(/token=([^;]+)/)
+    expect(tokenMatch).not.toBeNull()
+    const { verify } = await import('../lib/jwt.js')
+    const payload = await verify(tokenMatch![1])
+    expect(payload.isAdmin).toBe(true)
   })
 
   it('存在しないプレイヤーで 401 を返す', async () => {
@@ -152,8 +187,8 @@ describe('GET /api/auth/me', () => {
     return app
   }
 
-  it('有効な Cookie で playerId と name を返す', async () => {
-    const token = await sign({ sub: 'player-1', name: 'テストプレイヤー' })
+  it('有効な Cookie で playerId・name・isAdmin を返す', async () => {
+    const token = await sign({ sub: 'player-1', name: 'テストプレイヤー', isAdmin: false })
     const app = buildApp()
     const res = await app.request('/api/auth/me', {
       headers: { Cookie: `token=${token}` },
@@ -162,6 +197,18 @@ describe('GET /api/auth/me', () => {
     const body = await res.json()
     expect(body.playerId).toBe('player-1')
     expect(body.name).toBe('テストプレイヤー')
+    expect(body.isAdmin).toBe(false)
+  })
+
+  it('管理者の Cookie で isAdmin: true を返す', async () => {
+    const token = await sign({ sub: 'admin-1', name: '管理者', isAdmin: true })
+    const app = buildApp()
+    const res = await app.request('/api/auth/me', {
+      headers: { Cookie: `token=${token}` },
+    })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.isAdmin).toBe(true)
   })
 
   it('Cookie なしで 401 を返す', async () => {

@@ -30,7 +30,7 @@ export const authRoute = new Hono()
       return c.json({ error: 'Invalid credentials' }, 401)
     }
 
-    const token = await sign({ sub: player.id, name: player.name })
+    const token = await sign({ sub: player.id, name: player.name, isAdmin: player.isAdmin })
     const isProduction = process.env.NODE_ENV === 'production'
 
     setCookie(c, 'token', token, {
@@ -49,5 +49,5 @@ export const authRoute = new Hono()
   })
   .get('/me', authMiddleware, (c) => {
     const payload = c.get('jwtPayload')
-    return c.json({ playerId: payload.sub, name: payload.name })
+    return c.json({ playerId: payload.sub, name: payload.name, isAdmin: payload.isAdmin })
   })
