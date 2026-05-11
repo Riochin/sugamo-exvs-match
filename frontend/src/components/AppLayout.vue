@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-bg flex justify-center">
+  <div class="min-h-screen bg-checkerboard flex justify-center">
     <div
       data-testid="layout-container"
       class="relative w-full max-w-[430px] min-h-screen pb-16"

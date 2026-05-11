@@ -1,3 +1,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  .bg-checkerboard {
+    background-image:
+      linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.5) 100%),
+      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='54' height='80'><rect width='54' height='80' fill='%239681a2'/><polygon points='27,0 54,40 27,80 0,40' fill='%23b38ec7'/></svg>");
+    background-size: 100% 100%, 54px 80px;
+  }
+}
