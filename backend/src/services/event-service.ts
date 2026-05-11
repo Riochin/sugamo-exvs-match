@@ -1,0 +1,174 @@
+import { randomUUID } from 'crypto'
+import { and, eq, or } from 'drizzle-orm'
+import { db } from '../db/client.js'
+import { events, players, scores } from '../db/schema.js'
+import { hub } from '../routes/stream.js'
+
+export type EventPhase = 'COLLECTING' | 'REVEALING' | 'DONE'
+
+export interface ScoreEntry {
+  playerId: string
+  playerName: string
+  wins: number
+  losses: number
+  absent: boolean
+}
+
+export interface EventWithScores {
+  id: string
+  phase: EventPhase
+  heldAt: string
+  scores: ScoreEntry[]
+}
+
+export interface EventSummary {
+  id: string
+  phase: EventPhase
+  heldAt: string
+}
+
+export type EventError =
+  | { code: 'ACTIVE_EVENT_EXISTS' }
+  | { code: 'EVENT_NOT_FOUND' }
+  | { code: 'PLAYER_NOT_FOUND' }
+  | { code: 'INVALID_PHASE_TRANSITION'; current: EventPhase }
+  | { code: 'PHASE_NOT_COLLECTING'; current: EventPhase }
+
+const PHASE_MAP: Partial<Record<EventPhase, EventPhase>> = {
+  COLLECTING: 'REVEALING',
+  REVEALING: 'DONE',
+}
+
+export const eventService = {
+  async createEvent(params: { heldAt: Date }): Promise<EventWithScores | EventError> {
+    const activeEvents = await db
+      .select({ id: events.id })
+      .from(events)
+      .where(or(eq(events.phase, 'COLLECTING'), eq(events.phase, 'REVEALING')))
+
+    if (activeEvents.length > 0) {
+      return { code: 'ACTIVE_EVENT_EXISTS' }
+    }
+
+    const allPlayers = await db.select().from(players)
+
+    const eventId = randomUUID()
+    const now = new Date()
+
+    const [newEvent] = await db
+      .insert(events)
+      .values({ id: eventId, heldAt: params.heldAt, phase: 'COLLECTING', createdAt: now })
+      .returning()
+
+    if (allPlayers.length > 0) {
+      await db.insert(scores).values(
+        allPlayers.map((player) => ({
+          id: randomUUID(),
+          eventId,
+          playerId: player.id,
+          wins: 0,
+          losses: 0,
+          absent: false,
+        })),
+      )
+    }
+
+    return {
+      id: newEvent.id,
+      phase: newEvent.phase as EventPhase,
+      heldAt: newEvent.heldAt.toISOString(),
+      scores: allPlayers.map((player) => ({
+        playerId: player.id,
+        playerName: player.name,
+        wins: 0,
+        losses: 0,
+        absent: false,
+      })),
+    }
+  },
+
+  async getActiveEvent(): Promise<EventWithScores | null> {
+    const [event] = await db
+      .select()
+      .from(events)
+      .where(or(eq(events.phase, 'COLLECTING'), eq(events.phase, 'REVEALING')))
+
+    if (!event) return null
+
+    const eventScores = await db
+      .select({
+        playerId: scores.playerId,
+        playerName: players.name,
+        wins: scores.wins,
+        losses: scores.losses,
+        absent: scores.absent,
+      })
+      .from(scores)
+      .innerJoin(players, eq(scores.playerId, players.id))
+      .where(eq(scores.eventId, event.id))
+
+    return {
+      id: event.id,
+      phase: event.phase as EventPhase,
+      heldAt: event.heldAt.toISOString(),
+      scores: eventScores,
+    }
+  },
+
+  async listDoneEvents(): Promise<EventSummary[]> {
+    const doneEvents = await db
+      .select({ id: events.id, phase: events.phase, heldAt: events.heldAt })
+      .from(events)
+      .where(eq(events.phase, 'DONE'))
+
+    return doneEvents
+      .sort((a, b) => b.heldAt.getTime() - a.heldAt.getTime())
+      .map((e) => ({
+        id: e.id,
+        phase: e.phase as EventPhase,
+        heldAt: e.heldAt.toISOString(),
+      }))
+  },
+
+  async setAbsent(params: {
+    eventId: string
+    playerId: string
+    absent: boolean
+  }): Promise<void | EventError> {
+    const [event] = await db
+      .select()
+      .from(events)
+      .where(eq(events.id, params.eventId))
+
+    if (!event) return { code: 'EVENT_NOT_FOUND' }
+
+    if (event.phase !== 'COLLECTING') {
+      return { code: 'PHASE_NOT_COLLECTING', current: event.phase as EventPhase }
+    }
+
+    await db
+      .update(scores)
+      .set({ absent: params.absent })
+      .where(and(eq(scores.eventId, params.eventId), eq(scores.playerId, params.playerId)))
+  },
+
+  async advancePhase(params: { eventId: string }): Promise<{ phase: EventPhase } | EventError> {
+    const [event] = await db
+      .select()
+      .from(events)
+      .where(eq(events.id, params.eventId))
+
+    if (!event) return { code: 'EVENT_NOT_FOUND' }
+
+    const nextPhase = PHASE_MAP[event.phase as EventPhase]
+    if (!nextPhase) {
+      return { code: 'INVALID_PHASE_TRANSITION', current: event.phase as EventPhase }
+    }
+
+    await db.update(events).set({ phase: nextPhase }).where(eq(events.id, params.eventId))
+
+    await hub.broadcast(params.eventId, 'phase_update', { eventId: params.eventId, phase: nextPhase })
+
+    return { phase: nextPhase }
+  },
+}
