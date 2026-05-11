@@ -63,6 +63,9 @@ importers:
 
   frontend:
     dependencies:
+      hono:
+        specifier: ^4.12.18
+        version: 4.12.18
       vue:
         specifier: ^3.5.0
         version: 3.5.34(typescript@5.9.3)
