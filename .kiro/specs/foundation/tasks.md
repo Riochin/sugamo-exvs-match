@@ -91,15 +91,15 @@
   - _Requirements: 6.4, 6.5_
   - _Boundary: AppLayout, BottomNav_
 
-- [ ] 6. フロントエンド・バックエンド API 連携
-- [ ] 6.1 Hono RPC クライアントを初期化する
+- [x] 6. フロントエンド・バックエンド API 連携
+- [x] 6.1 Hono RPC クライアントを初期化する
   - `frontend/src/api/client.ts` に `hc<AppType>` を初期化し、`VITE_API_BASE_URL` 環境変数（未設定時は `/`）を使って全 API コールの窓口となるクライアントを実装する
   - TypeScript Project References で `backend/src/index.ts` の `AppType` を import し、レスポンス型推論付きの API クライアントとして利用できるようにする
   - `client.api.players.$get()` 呼び出しがコンパイルエラーなく型推論付きで動作することで完了とする
   - _Depends: 4.3_
   - _Requirements: 6.6_
 
-- [ ] 6.2 useEventStream composable を実装する
+- [x] 6.2 useEventStream composable を実装する
   - `frontend/src/composables/useEventStream.ts` に SSE エンドポイントへの接続・切断と受信イベントを Vue リアクティブ状態（`ref`）に変換するロジックを実装する
   - `connect(eventId)` で `EventSource` を生成し、`progress_update`・`result_ready`・`phase_update` イベントをそれぞれ対応する `ref` に格納する
   - `onUnmounted` で `disconnect()` を自動呼び出しして `EventSource` をクリーンアップし、`ping` イベントは無視する
