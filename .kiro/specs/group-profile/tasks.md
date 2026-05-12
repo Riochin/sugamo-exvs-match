@@ -21,8 +21,8 @@
   - 全テストが passing となる
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 4.4_
 
-- [ ] 2. playersRoute の修正（認証ガードとプロフィールエンドポイント）
-- [ ] 2.1 認証ガードを全エンドポイントに適用し、プロフィールエンドポイントを追加する
+- [x] 2. playersRoute の修正（認証ガードとプロフィールエンドポイント）
+- [x] 2.1 認証ガードを全エンドポイントに適用し、プロフィールエンドポイントを追加する
   - `use('/*', authMiddleware)` パターンで全エンドポイントに認証ガードを適用する
   - `GET /:id/profile` ルートハンドラを追加し、`ProfileService.getProfile(id)` を呼び出す
   - `getProfile` が `null` を返した場合は HTTP 404 を返す
@@ -30,7 +30,7 @@
   - 未認証リクエストが `GET /api/players` および `GET /api/players/:id/profile` の両方に対して 401 を返す
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 2.2 playersRoute の統合テストを実装する
+- [x] 2.2 playersRoute の統合テストを実装する
   - `GET /api/players`：認証あり → 200 + `PlayerListItem[]`、認証なし → 401 を検証する
   - `GET /api/players/:id/profile`：認証あり・存在するID → 200 + `PlayerProfileResponse` を検証する
   - `GET /api/players/:id/profile`：認証あり・存在しないID → 404 を検証する
