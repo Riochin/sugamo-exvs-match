@@ -76,16 +76,6 @@
         :event-id="(route.params.id as string)"
       />
 
-      <!-- DONE後 Star投票CTA（全ユーザー向け） -->
-      <div v-if="eventPhase === 'DONE'" class="mt-8 flex justify-center">
-        <router-link
-          data-testid="star-vote-cta"
-          to="/star-vote"
-          class="block w-full max-w-xs py-3 rounded-lg font-bold text-center bg-yellow-400 text-black"
-        >
-          Star投票へ
-        </router-link>
-      </div>
     </div>
 
     <!-- 管理者フェーズ進行ボタン（固定フッター） -->
@@ -99,7 +89,7 @@
         class="w-full py-3 rounded-lg font-bold text-white bg-main disabled:opacity-40 disabled:cursor-not-allowed"
         @click="advancePhase"
       >
-        次のフェーズへ
+        {{ revealPhase >= 2 ? '終了' : '次のフェーズへ' }}
       </button>
     </div>
   </div>
@@ -133,6 +123,9 @@ const borderPlayers = computed(
 watch(eventPhase, (phase) => {
   if (phase === 'COLLECTING') {
     router.replace('/')
+  }
+  if (phase === 'DONE') {
+    router.replace(currentPlayer.value?.isAdmin ? '/admin' : '/')
   }
 })
 

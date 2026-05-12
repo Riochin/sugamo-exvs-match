@@ -317,6 +317,69 @@ describe('ResultRevealView', () => {
     expect((btn.element as HTMLButtonElement).disabled).toBe(true)
   })
 
+  it('revealPhase=2 のとき「終了」ボタンが表示される', async () => {
+    mockCurrentPlayer.value = { playerId: 'admin', name: 'Admin', isAdmin: true }
+    mockEventPhase.value = 'REVEALING'
+    mockRevealPhase.value = 2
+
+    const router = createTestRouter()
+    await router.isReady()
+    const wrapper = mount(ResultRevealView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    const btn = wrapper.find('[data-testid="advance-button"]')
+    expect(btn.text()).toBe('終了')
+    expect((btn.element as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('revealPhase=1 のとき「次のフェーズへ」ボタンが表示される', async () => {
+    mockCurrentPlayer.value = { playerId: 'admin', name: 'Admin', isAdmin: true }
+    mockEventPhase.value = 'REVEALING'
+    mockRevealPhase.value = 1
+
+    const router = createTestRouter()
+    await router.isReady()
+    const wrapper = mount(ResultRevealView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    const btn = wrapper.find('[data-testid="advance-button"]')
+    expect(btn.text()).toBe('次のフェーズへ')
+  })
+
+  it('管理者が「終了」を押して eventPhase が DONE に遷移すると /admin へ移動する', async () => {
+    mockCurrentPlayer.value = { playerId: 'admin', name: 'Admin', isAdmin: true }
+    mockEventPhase.value = 'REVEALING'
+    mockRevealPhase.value = 2
+
+    const router = createTestRouter()
+    const replaceSpy = vi.spyOn(router, 'replace')
+    await router.isReady()
+    mount(ResultRevealView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    mockEventPhase.value = 'DONE'
+    await flushPromises()
+
+    expect(replaceSpy).toHaveBeenCalledWith('/admin')
+  })
+
+  it('非管理者の場合は DONE 遷移時に / へ移動する', async () => {
+    mockCurrentPlayer.value = { playerId: 'p1', name: 'Player', isAdmin: false }
+    mockEventPhase.value = 'REVEALING'
+    mockRevealPhase.value = 2
+
+    const router = createTestRouter()
+    const replaceSpy = vi.spyOn(router, 'replace')
+    await router.isReady()
+    mount(ResultRevealView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    mockEventPhase.value = 'DONE'
+    await flushPromises()
+
+    expect(replaceSpy).toHaveBeenCalledWith('/')
+  })
+
   it('「次のフェーズへ」クリックで advancePhase が呼ばれる', async () => {
     mockCurrentPlayer.value = { playerId: 'admin', name: 'Admin', isAdmin: true }
     mockEventPhase.value = 'REVEALING'
@@ -329,38 +392,6 @@ describe('ResultRevealView', () => {
 
     await wrapper.find('[data-testid="advance-button"]').trigger('click')
     expect(mockAdvancePhase).toHaveBeenCalledOnce()
-  })
-
-  it('eventPhase=DONE のとき Star投票 CTA が全ユーザーに表示される', async () => {
-    mockCurrentPlayer.value = { playerId: 'p1', name: 'Player', isAdmin: false }
-    mockEventPhase.value = 'DONE'
-    mockRevealPhase.value = 3
-    mockResult.value = {
-      eventId: 'event-1',
-      revealPhase: 3,
-      eventPhase: 'DONE',
-      players: samplePlayers,
-    }
-
-    const router = createTestRouter()
-    await router.isReady()
-    const wrapper = mount(ResultRevealView, { global: { plugins: [router] } })
-    await flushPromises()
-
-    expect(wrapper.find('[data-testid="star-vote-cta"]').exists()).toBe(true)
-  })
-
-  it('eventPhase が DONE でない場合は CTA が表示されない', async () => {
-    mockCurrentPlayer.value = { playerId: 'p1', name: 'Player', isAdmin: false }
-    mockEventPhase.value = 'REVEALING'
-    mockRevealPhase.value = 1
-
-    const router = createTestRouter()
-    await router.isReady()
-    const wrapper = mount(ResultRevealView, { global: { plugins: [router] } })
-    await flushPromises()
-
-    expect(wrapper.find('[data-testid="star-vote-cta"]').exists()).toBe(false)
   })
 
   // ─── 7.5: StarResultsSection 統合 ──────────────────────────────────────
