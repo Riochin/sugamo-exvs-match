@@ -20,13 +20,15 @@ vi.mock('@/api/client', () => ({
 
 const mockProgressUpdate = ref<{ completedCount: number; totalCount: number } | null>(null)
 const mockResultReady = ref(false)
-const mockCurrentPhase = ref<'COLLECTING' | 'REVEALING' | 'DONE' | null>(null)
+const mockCurrentPhase = ref<'COLLECTING' | 'STAR_VOTING' | 'REVEALING' | 'DONE' | null>(null)
 
 vi.mock('@/composables/useEventStream', () => ({
   useEventStream: () => ({
     progressUpdate: computed(() => mockProgressUpdate.value),
     resultReady: computed(() => mockResultReady.value),
     currentPhase: computed(() => mockCurrentPhase.value),
+    starVoteUpdate: ref(null),
+    latestPhaseUpdate: ref(null),
     isConnected: ref(false),
     connect: mockConnect,
     disconnect: mockDisconnect,
@@ -47,6 +49,7 @@ function createTestRouter() {
     routes: [
       { path: '/', component: { template: '<div />' } },
       { path: '/events/:id/result', component: { template: '<div />' } },
+      { path: '/events/:id/star-voting', component: { template: '<div />' } },
     ],
   })
 }
@@ -174,5 +177,40 @@ describe('TournamentView', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-testid="no-event-message"]').exists()).toBe(true)
+  })
+
+  it('SSE phase_update で STAR_VOTING を受信すると /events/:id/star-voting へ遷移する', async () => {
+    mockGetActiveFn.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        event: { id: 'event-1', phase: 'COLLECTING', heldAt: '2026-05-12T00:00:00.000Z', scores: [] },
+      }),
+    })
+
+    const router = createTestRouter()
+    await router.push('/')
+    mount(TournamentView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    mockCurrentPhase.value = 'STAR_VOTING'
+    await flushPromises()
+
+    expect(router.currentRoute.value.path).toBe('/events/event-1/star-voting')
+  })
+
+  it('初期フェーズが STAR_VOTING の場合は /events/:id/star-voting へ遷移する', async () => {
+    mockGetActiveFn.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        event: { id: 'event-1', phase: 'STAR_VOTING', heldAt: '2026-05-12T00:00:00.000Z', scores: [] },
+      }),
+    })
+
+    const router = createTestRouter()
+    await router.push('/')
+    mount(TournamentView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(router.currentRoute.value.path).toBe('/events/event-1/star-voting')
   })
 })

@@ -27,7 +27,7 @@ import ScoreEntryPanel from '@/components/score/ScoreEntryPanel.vue'
 
 interface ActiveEvent {
   id: string
-  phase: 'COLLECTING' | 'REVEALING' | 'DONE'
+  phase: 'COLLECTING' | 'STAR_VOTING' | 'REVEALING' | 'DONE'
   heldAt: string
   scores: unknown[]
 }
@@ -36,7 +36,7 @@ const router = useRouter()
 const { progressUpdate, resultReady, currentPhase, connect } = useEventStream()
 
 const activeEvent = ref<ActiveEvent | null>(null)
-const initialPhase = ref<'COLLECTING' | 'REVEALING' | 'DONE' | null>(null)
+const initialPhase = ref<'COLLECTING' | 'STAR_VOTING' | 'REVEALING' | 'DONE' | null>(null)
 
 const phase = computed(() => currentPhase.value ?? initialPhase.value)
 
@@ -47,6 +47,9 @@ watch(resultReady, (ready) => {
 })
 
 watch(currentPhase, (phase) => {
+  if (phase === 'STAR_VOTING' && activeEvent.value) {
+    router.replace(`/events/${activeEvent.value.id}/star-voting`)
+  }
   if (phase === 'REVEALING' && activeEvent.value) {
     router.replace(`/events/${activeEvent.value.id}/result`)
   }
@@ -62,6 +65,11 @@ onMounted(async () => {
 
     activeEvent.value = event
     initialPhase.value = event.phase
+
+    if (event.phase === 'STAR_VOTING') {
+      router.replace(`/events/${event.id}/star-voting`)
+      return
+    }
 
     if (event.phase === 'REVEALING') {
       router.replace(`/events/${event.id}/result`)

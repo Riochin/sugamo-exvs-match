@@ -106,4 +106,23 @@ describe('ルートガード', () => {
     await router.push('/events/event-1/result')
     expect(router.currentRoute.value.meta.layout).toBe('plain')
   })
+
+  it('認証済みで /events/:id/star-voting にアクセスするとそのまま表示される', async () => {
+    const router = await buildRouter(true)
+    await router.push('/events/event-1/star-voting')
+    expect(router.currentRoute.value.path).toBe('/events/event-1/star-voting')
+  })
+
+  it('未認証で /events/:id/star-voting にアクセスすると /login へリダイレクトされる', async () => {
+    const router = await buildRouter(false)
+    await router.push('/events/event-1/star-voting')
+    expect(router.currentRoute.value.path).toBe('/login')
+    expect(router.currentRoute.value.query.redirect).toBe('/events/event-1/star-voting')
+  })
+
+  it('/events/:id/star-voting ルートは layout: plain メタを持つ', async () => {
+    const router = await buildRouter(true)
+    await router.push('/events/event-1/star-voting')
+    expect(router.currentRoute.value.meta.layout).toBe('plain')
+  })
 })

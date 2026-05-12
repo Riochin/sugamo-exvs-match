@@ -5,6 +5,7 @@ import ProfileView from '@/views/ProfileView.vue'
 import LoginView from '@/views/LoginView.vue'
 import AdminView from '@/views/AdminView.vue'
 import ResultRevealView from '@/views/ResultRevealView.vue'
+import StarVotingView from '@/views/StarVotingView.vue'
 import { useAuth } from '@/composables/useAuth'
 
 declare module 'vue-router' {
@@ -24,6 +25,7 @@ export const router = createRouter({
     { path: '/profile/:id', component: ProfileView, meta: { requiresAuth: true } },
     { path: '/admin', component: AdminView, meta: { requiresAuth: true, requiresAdmin: true } },
     { path: '/events/:id/result', component: ResultRevealView, meta: { requiresAuth: true, layout: 'plain' } },
+    { path: '/events/:id/star-voting', component: StarVotingView, meta: { requiresAuth: true, layout: 'plain' } },
   ],
 })
 
