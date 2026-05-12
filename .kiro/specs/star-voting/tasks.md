@@ -2,8 +2,8 @@
 
 ## タスク一覧
 
-- [ ] 1. Foundation — データベーススキーマと型定義の基盤整備
-- [ ] 1.1 DB スキーマ変更と Drizzle マイグレーション
+- [x] 1. Foundation — データベーススキーマと型定義の基盤整備
+- [x] 1.1 DB スキーマ変更と Drizzle マイグレーション
   - `events.phase` の enum に `'STAR_VOTING'` を追加する
   - `scores` テーブルに `starVotingSubmitted` boolean カラム（デフォルト `false`）を追加する
   - `stars` テーブルの `(eventId, fromPlayerId, toPlayerId)` に一意制約インデックスを追加する
@@ -11,7 +11,7 @@
   - スキーマ変更後に TypeScript コンパイルエラーが発生しないことを確認する
   - _Requirements: 4.7, 5.2, 8.4_
 
-- [ ] 1.2 バックエンド型定義とフェーズ管理の拡張
+- [x] 1.2 バックエンド型定義とフェーズ管理の拡張
   - `event-service.ts` の `EventPhase` 型を `'COLLECTING' | 'STAR_VOTING' | 'REVEALING' | 'DONE'` に更新する
   - `PHASE_MAP` を `{ COLLECTING: 'STAR_VOTING', STAR_VOTING: 'REVEALING', REVEALING: 'DONE' }` に更新する
   - `stream.ts` の `SSEEventType` Union 型に `'star_vote_update'` を追加する
