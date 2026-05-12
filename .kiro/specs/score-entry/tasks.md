@@ -26,8 +26,8 @@
   - _Requirements: 1.4, 1.5, 5.1, 5.2, 5.3_
   - _Boundary: scoresRoute_
 
-- [ ] 3. フロントエンド: 提出ロジックとUIコンポーネントの実装
-- [ ] 3.1 useScoreEntryコンポーザブルを実装する
+- [x] 3. フロントエンド: 提出ロジックとUIコンポーネントの実装
+- [x] 3.1 useScoreEntryコンポーザブルを実装する
   - `frontend/src/composables/useScoreEntry.ts` を新規作成し `matches` / `wins` の ref と `isValid` / `isSubmitting` / `submitted` / `isAbsent` / `error` を公開する
   - `isValid` を `matches !== null && wins !== null && matches >= 0 && wins >= 0 && wins <= matches` の computed で定義する
   - マウント時に `client.api.events.active.$get()` を呼び出し、現在プレイヤーのスコアレコードから `absent` フラグを取得して `isAbsent` を初期化する
@@ -37,7 +37,7 @@
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 4.2, 4.6, 5.4_
   - _Boundary: useScoreEntry_
 
-- [ ] 3.2 (P) SubmissionProgressBarコンポーネントを実装する
+- [x] 3.2 (P) SubmissionProgressBarコンポーネントを実装する
   - `frontend/src/components/score/SubmissionProgressBar.vue` を新規作成し `completedCount: number` と `totalCount: number` を props として受け取る
   - `completedCount / totalCount` のパーセンテージをプログレスバーで描画し "X / Y 人提出済み" テキストを表示する
   - `totalCount=0` のとき 0% 表示となり除算エラーが発生しないことを確認できる
@@ -45,7 +45,7 @@
   - _Requirements: 2.3, 4.3_
   - _Boundary: SubmissionProgressBar_
 
-- [ ] 3.3 ScoreEntryPanelコンポーネントを実装する
+- [x] 3.3 ScoreEntryPanelコンポーネントを実装する
   - `frontend/src/components/score/ScoreEntryPanel.vue` を新規作成し `eventId: string` と `progressUpdate: ProgressUpdatePayload | null` を props として受け取る
   - `useScoreEntry(eventId)` を呼び出しフォーム状態と提出ロジックを管理する
   - `isAbsent=true` のとき入力フォームを非表示にして欠席メッセージを表示し、`submitted=true` のとき送信完了メッセージを表示してフォームをロックする
