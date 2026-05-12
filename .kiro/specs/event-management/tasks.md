@@ -74,7 +74,7 @@
 
 ## タスク 6: `AdminView` コンポーネントの実装
 
-- [ ] 6.1 管理者ダッシュボード UI を実装する
+- [x] 6.1 管理者ダッシュボード UI を実装する
   - `useAdminEvent` から `activeEvent`・`isLoading`・`error` と各ミューテーション関数を取得して画面を構築する
   - `activeEvent === null` のとき大会作成フォーム（`heldAt` 日時入力と送信ボタン）を表示する
   - `phase === 'COLLECTING'` のとき参加者一覧（欠席チェックボックス付き）と「REVEALING へ」ボタンを表示する
