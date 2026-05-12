@@ -12,8 +12,8 @@ type PlayerListItem = {
 }
 
 export interface UseGroupProfileReturn {
-  firstTeam: Readonly<Ref<PlayerListItem[]>>
-  secondTeam: Readonly<Ref<PlayerListItem[]>>
+  firstTeam: Readonly<Ref<readonly PlayerListItem[]>>
+  secondTeam: Readonly<Ref<readonly PlayerListItem[]>>
   isLoading: Readonly<Ref<boolean>>
   error: Readonly<Ref<string | null>>
   refresh(): Promise<void>

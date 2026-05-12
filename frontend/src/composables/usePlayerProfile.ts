@@ -23,7 +23,7 @@ type PlayerProfileResponse = {
   team: 'FIRST' | 'SECOND'
   title: string | null
   mainUnit: string | null
-  winRateHistory: WinRateEntry[]
+  winRateHistory: readonly WinRateEntry[]
 }
 
 export interface UsePlayerProfileReturn {

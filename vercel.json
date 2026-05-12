@@ -1,0 +1,5 @@
+{
+  "buildCommand": "pnpm --filter @sugamo/backend build:types && pnpm --filter @sugamo/frontend build",
+  "outputDirectory": "frontend/dist",
+  "installCommand": "pnpm install"
+}

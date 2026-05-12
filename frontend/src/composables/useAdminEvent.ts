@@ -16,7 +16,7 @@ export interface EventWithScores {
   id: string
   phase: EventPhase
   heldAt: string
-  scores: ScoreEntry[]
+  scores: readonly ScoreEntry[]
 }
 
 export interface UseAdminEventReturn {

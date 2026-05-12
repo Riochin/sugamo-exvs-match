@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Hono } from 'hono'
 import { eventsRoute } from '../routes/events.js'
 import { sign } from '../lib/jwt.js'
+import type { EventPhase } from '../services/event-service.js'
 
 vi.mock('../services/event-service.js', () => ({
   eventService: {
@@ -45,7 +46,7 @@ describe('POST /api/events', () => {
     const { eventService } = await import('../services/event-service.js')
     const mockResult = {
       id: 'event-1',
-      phase: 'COLLECTING',
+      phase: 'COLLECTING' as EventPhase,
       heldAt: '2026-06-01T10:00:00.000Z',
       scores: [],
     }
@@ -141,7 +142,7 @@ describe('GET /api/events/active', () => {
     const { eventService } = await import('../services/event-service.js')
     const mockEvent = {
       id: 'event-1',
-      phase: 'COLLECTING',
+      phase: 'COLLECTING' as EventPhase,
       heldAt: '2026-06-01T10:00:00.000Z',
       scores: [{ playerId: 'p1', playerName: 'Alice', wins: 0, losses: 0, absent: false }],
     }
@@ -176,8 +177,8 @@ describe('GET /api/events', () => {
   it('DONE 大会一覧を降順で返す', async () => {
     const { eventService } = await import('../services/event-service.js')
     const mockEvents = [
-      { id: 'event-2', phase: 'DONE', heldAt: '2026-06-02T10:00:00.000Z' },
-      { id: 'event-1', phase: 'DONE', heldAt: '2026-06-01T10:00:00.000Z' },
+      { id: 'event-2', phase: 'DONE' as EventPhase, heldAt: '2026-06-02T10:00:00.000Z' },
+      { id: 'event-1', phase: 'DONE' as EventPhase, heldAt: '2026-06-01T10:00:00.000Z' },
     ]
     vi.mocked(eventService.listDoneEvents).mockResolvedValue(mockEvents)
 

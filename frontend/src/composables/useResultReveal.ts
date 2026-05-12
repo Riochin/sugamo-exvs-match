@@ -21,7 +21,7 @@ export interface RevealResult {
   eventId: string
   revealPhase: number
   eventPhase: 'COLLECTING' | 'REVEALING' | 'DONE'
-  players: PlayerResult[]
+  players: readonly PlayerResult[]
 }
 
 export interface UseResultRevealReturn {

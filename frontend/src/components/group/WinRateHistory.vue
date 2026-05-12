@@ -31,6 +31,6 @@ type WinRateEntry =
   | { eventId: string; heldAt: string; absent: true }
 
 defineProps<{
-  history: WinRateEntry[]
+  history: readonly WinRateEntry[]
 }>()
 </script>

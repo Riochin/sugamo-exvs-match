@@ -41,7 +41,7 @@ export const authRoute = new Hono()
       path: '/',
     })
 
-    return c.json({ playerId: player.id, name: player.name })
+    return c.json({ playerId: player.id, name: player.name, isAdmin: player.isAdmin })
   })
   .post('/logout', (c) => {
     deleteCookie(c, 'token', { path: '/' })
