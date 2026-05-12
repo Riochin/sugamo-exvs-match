@@ -15,6 +15,7 @@ export interface UseStarVotingReturn {
   isSubmitting: Readonly<Ref<boolean>>
   submitted: Readonly<Ref<boolean>>
   error: Readonly<Ref<string | null>>
+  phaseNotVoting: Readonly<Ref<boolean>>
   increment(playerId: string): void
   decrement(playerId: string): void
   submitVote(): Promise<void>
@@ -26,6 +27,7 @@ export function useStarVoting(): UseStarVotingReturn {
   const isSubmitting = ref(false)
   const submitted = ref(false)
   const error = ref<string | null>(null)
+  const phaseNotVoting = ref(false)
 
   const remaining = computed(() => {
     const total = players.value.reduce((sum, p) => sum + p.allocated, 0)
@@ -36,10 +38,15 @@ export function useStarVoting(): UseStarVotingReturn {
 
   async function loadPlayers(eventId: string): Promise<void> {
     error.value = null
+    phaseNotVoting.value = false
     try {
       const res = await client.api.stars.status.$get()
       if (!res.ok) {
-        error.value = 'プレイヤー一覧の取得に失敗しました'
+        if (res.status === 404) {
+          phaseNotVoting.value = true
+        } else {
+          error.value = 'プレイヤー一覧の取得に失敗しました'
+        }
         return
       }
       const data = await res.json()
@@ -97,6 +104,7 @@ export function useStarVoting(): UseStarVotingReturn {
     isSubmitting: readonly(isSubmitting),
     submitted: readonly(submitted),
     error: readonly(error),
+    phaseNotVoting: readonly(phaseNotVoting),
     increment,
     decrement,
     submitVote,
