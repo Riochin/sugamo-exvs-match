@@ -57,7 +57,7 @@
   - _Depends: 3.1, 3.2_
   - _Boundary: ScoreEntryPanel_
 
-- [ ] 4. TournamentViewをCOLLECTINGフェーズ対応コンテナに拡充する
+- [x] 4. TournamentViewをCOLLECTINGフェーズ対応コンテナに拡充する
   - マウント時に `client.api.events.active.$get()` でアクティブイベントを取得し、取得後に `useEventStream.connect(eventId)` を呼び出す
   - `currentPhase` が `COLLECTING` のとき `ScoreEntryPanel` を表示し、イベントが存在しないとき待機メッセージを表示する
   - `useEventStream` の `progressUpdate` イベントを受信して `ScoreEntryPanel` の prop に渡す
@@ -67,8 +67,8 @@
   - _Depends: 3.3_
   - _Boundary: TournamentView_
 
-- [ ] 5. テスト
-- [ ] 5.1 ScoreServiceのユニットテストを実装する
+- [x] 5. テスト
+- [x] 5.1 ScoreServiceのユニットテストを実装する
   - フェーズが `COLLECTING` 以外のとき `PHASE_NOT_COLLECTING` が返ることをテストする
   - `absent=true` のプレイヤーが `PLAYER_ABSENT` を返すことをテストする
   - `losses = matches - wins` が正しく計算されて DB に保存されることをテストする
@@ -78,7 +78,7 @@
   - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 3.1, 3.2, 3.3_
   - _Boundary: ScoreService_
 
-- [ ] 5.2 (P) scoresRoute APIインテグレーションテストを実装する
+- [x] 5.2 (P) scoresRoute APIインテグレーションテストを実装する
   - 正常系: 認証済みプレイヤーが有効値を送信すると 200 が返ることをテストする
   - 認証なし: 401 が返ることをテストする
   - バリデーションエラー (`wins > matches`): 400 が返ることをテストする
@@ -88,7 +88,7 @@
   - _Requirements: 1.4, 1.5, 5.1, 5.2, 5.3_
   - _Boundary: scoresRoute_
 
-- [ ]* 5.3 useScoreEntryのユニットテストを実装する
+- [x] 5.3 useScoreEntryのユニットテストを実装する
   - `wins > matches` のとき `isValid = false` であることをテストする
   - 送信成功後に `submitted = true` となりフォームがロックされることをテストする
   - API エラー時に `error` ref にメッセージがセットされることをテストする
