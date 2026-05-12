@@ -35,7 +35,7 @@ export const authRoute = new Hono()
 
     setCookie(c, 'token', token, {
       httpOnly: true,
-      sameSite: 'Lax',
+      sameSite: isProduction ? 'None' : 'Lax',
       secure: isProduction,
       maxAge: 60 * 60 * 24,
       path: '/',
