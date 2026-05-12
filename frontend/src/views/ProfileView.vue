@@ -1,5 +1,80 @@
 <template>
   <div class="p-4 text-white">
-    <h1 class="text-xl font-bold text-main">プロフィール</h1>
+    <div
+      v-if="isLoading"
+      data-testid="loading-spinner"
+      class="flex justify-center py-8"
+    >
+      <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-main" />
+    </div>
+
+    <div
+      v-else-if="notFound"
+      data-testid="not-found-message"
+      class="text-center py-8"
+    >
+      <p class="text-gray-400 mb-4">プレイヤーが見つかりません</p>
+      <RouterLink to="/group" class="text-main underline">戻る</RouterLink>
+    </div>
+
+    <div
+      v-else-if="error"
+      data-testid="error-message"
+      class="text-red-400 text-center py-4"
+    >
+      {{ error }}
+    </div>
+
+    <template v-else-if="profile">
+      <div
+        data-testid="player-info"
+        class="bg-dark rounded-lg p-4 mb-4"
+      >
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-xl font-bold">{{ profile.name }}</h2>
+          <span
+            v-if="profile.team === 'FIRST'"
+            class="text-xs font-semibold text-yellow-400 border border-yellow-400 rounded px-2 py-0.5"
+          >1軍</span>
+          <span
+            v-else
+            class="text-xs font-semibold text-white bg-main rounded px-2 py-0.5"
+          >2軍</span>
+        </div>
+        <div class="text-sm space-y-2">
+          <div>
+            <span class="text-gray-500 mr-2">称号</span>
+            <span :class="profile.title === null ? 'text-gray-400' : ''">
+              {{ profile.title ?? '未設定' }}
+            </span>
+          </div>
+          <div>
+            <span class="text-gray-500 mr-2">主使用機体</span>
+            <span :class="profile.mainUnit === null ? 'text-gray-400' : ''">
+              {{ profile.mainUnit ?? '未設定' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div
+        data-testid="win-rate-section"
+        class="bg-dark rounded-lg p-4"
+      >
+        <h3 class="text-sm font-semibold text-gray-400 mb-3">直近5回の勝率推移</h3>
+        <WinRateHistory :history="profile.winRateHistory" />
+      </div>
+    </template>
   </div>
 </template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute, RouterLink } from 'vue-router'
+import { usePlayerProfile } from '@/composables/usePlayerProfile'
+import WinRateHistory from '@/components/group/WinRateHistory.vue'
+
+const route = useRoute()
+const playerId = computed(() => String(route.params.id))
+const { profile, isLoading, error, notFound } = usePlayerProfile(playerId)
+</script>

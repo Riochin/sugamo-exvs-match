@@ -79,8 +79,8 @@
   - _Requirements: 1.4, 5.3_
   - _Boundary: Router, BottomNav_
 
-- [ ] 4. View 画面の本実装
-- [ ] 4.1 GroupView を本実装する
+- [x] 4. View 画面の本実装
+- [x] 4.1 GroupView を本実装する
   - `useGroupProfile` を初期化し `firstTeam`・`secondTeam`・`isLoading`・`error` を受け取る
   - `isLoading = true` の間はローディングスピナーを表示する
   - `error` が存在する場合はエラーメッセージを表示する
@@ -89,7 +89,7 @@
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 5.1, 5.2, 5.3_
   - _Depends: 3.1, 3.3, 3.5_
 
-- [ ] 4.2 ProfileView を本実装する
+- [x] 4.2 ProfileView を本実装する
   - `useRoute().params.id` から `playerId` を取得し `usePlayerProfile(playerId)` を初期化する
   - `isLoading = true` の間はローディングスピナーを表示する
   - `notFound = true` の場合に「プレイヤーが見つかりません」メッセージと戻るボタンを表示する
@@ -98,14 +98,14 @@
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 5.1, 5.2_
   - _Depends: 3.2, 3.4, 3.5_
 
-- [ ]* 4.3 GroupView のUIテストを実装する
+- [x]* 4.3 GroupView のUIテストを実装する
   - 1軍・2軍セクションが正しく表示されることを検証する（Req 1.2）
   - ローディング中にスピナーが表示されることを検証する（Req 2.3 に対応する GroupView 側挙動）
   - エラー時にメッセージが表示されることを検証する（Req 1.5）
   - _Requirements: 1.2, 1.5_
   - _Depends: 4.1_
 
-- [ ]* 4.4 ProfileView・WinRateHistory のUIテストを実装する
+- [x]* 4.4 ProfileView・WinRateHistory のUIテストを実装する
   - ProfileView でプレイヤー情報が表示されることを検証する（Req 2.1）
   - `notFound = true` の場合に「プレイヤーが見つかりません」が表示されることを検証する（Req 2.6）
   - WinRateHistory で欠席エントリに「欠席」テキストが表示されることを検証する（Req 3.3）
