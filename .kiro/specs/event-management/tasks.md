@@ -88,7 +88,7 @@
 
 ## タスク 7: テストと検証
 
-- [ ] 7.1 `EventService` のユニットテストを実装する
+- [x] 7.1 `EventService` のユニットテストを実装する
   - `createEvent`: 進行中大会なし → events + scores レコードが正しく作成されること
   - `createEvent`: 進行中大会あり → `ACTIVE_EVENT_EXISTS` エラーを返すこと
   - `advancePhase`: `COLLECTING → REVEALING` → DB 更新と `hub.broadcast` が呼ばれること
@@ -98,7 +98,7 @@
   - 全テストケースがパスすることを確認する
   - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 7.2 `eventsRoute` のインテグレーションテストを実装する
+- [x] 7.2 `eventsRoute` のインテグレーションテストを実装する
   - `POST /api/events`: 管理者トークンで正常な大会作成レスポンスを返すこと
   - `POST /api/events`: 非管理者トークンで 403 を返すこと
   - `PATCH /api/events/:id/phase`: 正常遷移で SSE `phase_update` ブロードキャストが送信されること
@@ -107,7 +107,7 @@
   - 全テストケースがパスすることを確認する
   - _Requirements: 1.1, 1.4, 2.4, 3.1, 4.2, 4.4_
 
-- [ ]* 7.3 `AdminView` の E2E テストを実装する
+- [x]* 7.3 `AdminView` の E2E テストを実装する
   - 管理者ログイン → `/admin` 表示 → 大会作成 → 参加者一覧が表示されること（要件 6.1, 6.2）
   - `COLLECTING` フェーズで欠席チェック → 状態が更新されること（要件 6.3）
   - REVEALING ボタン押下 → フェーズが更新されて DONE ボタンに切り替わること（要件 6.4, 6.7）
