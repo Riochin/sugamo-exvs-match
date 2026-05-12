@@ -20,6 +20,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { client } from '@/api/client'
 import { useEventStream } from '@/composables/useEventStream'
 import ScoreEntryPanel from '@/components/score/ScoreEntryPanel.vue'
@@ -31,6 +32,7 @@ interface ActiveEvent {
   scores: unknown[]
 }
 
+const router = useRouter()
 const { progressUpdate, resultReady, currentPhase, connect } = useEventStream()
 
 const activeEvent = ref<ActiveEvent | null>(null)
@@ -39,8 +41,8 @@ const initialPhase = ref<'COLLECTING' | 'REVEALING' | 'DONE' | null>(null)
 const phase = computed(() => currentPhase.value ?? initialPhase.value)
 
 watch(resultReady, (ready) => {
-  if (ready) {
-    console.log('[TournamentView] result_ready 受信 — 結果発表ルートへの遷移は result-reveal スペックで実装予定')
+  if (ready && activeEvent.value) {
+    router.replace(`/events/${activeEvent.value.id}/result`)
   }
 })
 

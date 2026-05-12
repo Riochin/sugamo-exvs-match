@@ -73,22 +73,13 @@
           </div>
         </template>
 
-        <!-- REVEALING フェーズ: DONE ボタン -->
+        <!-- REVEALING フェーズ: 情報表示のみ（フェーズ進行は結果発表ページで管理） -->
         <template v-else-if="activeEvent.phase === 'REVEALING'">
           <div class="rounded border border-main bg-dark p-4">
             <h2 class="mb-2 text-lg font-semibold">
               大会中 — <span class="text-main">{{ activeEvent.phase }}</span>
             </h2>
-            <p class="mb-4 text-sm text-gray-400">開催日時: {{ formatDate(activeEvent.heldAt) }}</p>
-
-            <button
-              data-testid="advance-phase-btn"
-              :disabled="isLoading"
-              class="w-full rounded bg-main px-4 py-2 font-bold text-white disabled:opacity-50"
-              @click="advancePhase"
-            >
-              {{ isLoading ? '処理中...' : 'DONE へ' }}
-            </button>
+            <p class="text-sm text-gray-400">開催日時: {{ formatDate(activeEvent.heldAt) }}</p>
           </div>
         </template>
 

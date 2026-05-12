@@ -130,15 +130,15 @@
   - _Requirements: 2.4, 6.2, 6.4_
   - _Boundary: ResultRevealView_
 
-- [ ] 8. 既存コンポーネントの変更
-- [ ] 8.1 (P) TournamentViewにresult_ready受信時の強制遷移ロジックを追加する
+- [x] 8. 既存コンポーネントの変更
+- [x] 8.1 (P) TournamentViewにresult_ready受信時の強制遷移ロジックを追加する
   - TournamentView.vue に `watch(resultReady)` を実装し、result_ready SSEイベント受信時に `router.replace('/events/${eventId}/result')` を呼び出す（要件1.1のブロードキャストは score-entry スペックの scoreService が担当済み）
   - router.replace を使用することで戻るボタンによる手動ナビゲーションを無効化する
   - result_ready 受信後に TournamentView から ResultRevealView へ自動遷移すること
   - _Requirements: 1.1, 1.2, 1.3_
   - _Boundary: TournamentView_
 
-- [ ] 8.2 (P) AdminViewのREVEALINGフェーズ管理ボタンを削除する
+- [x] 8.2 (P) AdminViewのREVEALINGフェーズ管理ボタンを削除する
   - AdminView.vue から REVEALING フェーズの「DONE へ」ボタンを削除する
   - フェーズ進行制御は resultRoute の /reveal-phase エンドポイントに移管されるため不要になる
   - AdminView で REVEALING フェーズに不要なボタンが表示されなくなること

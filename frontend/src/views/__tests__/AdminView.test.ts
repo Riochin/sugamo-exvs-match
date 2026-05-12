@@ -131,14 +131,22 @@ describe('AdminView', () => {
     expect(wrapper.find('[data-testid="create-event-form"]').exists()).toBe(false)
   })
 
-  it('phase === REVEALING のとき DONE ボタンを表示する', async () => {
+  it('phase === REVEALING のときフェーズ進行ボタンを表示しない', async () => {
     mockActiveEvent.value = { id: 'e1', phase: 'REVEALING', heldAt: '2026-05-12T00:00:00.000Z', scores: sampleScores }
     const router = createTestRouter()
     const wrapper = mount(AdminView, { global: { plugins: [router] } })
     await flushPromises()
 
-    expect(wrapper.find('[data-testid="advance-phase-btn"]').exists()).toBe(true)
-    expect(wrapper.find('[data-testid="advance-phase-btn"]').text()).toContain('DONE')
+    expect(wrapper.find('[data-testid="advance-phase-btn"]').exists()).toBe(false)
+  })
+
+  it('phase === REVEALING のときフェーズ名を表示する', async () => {
+    mockActiveEvent.value = { id: 'e1', phase: 'REVEALING', heldAt: '2026-05-12T00:00:00.000Z', scores: sampleScores }
+    const router = createTestRouter()
+    const wrapper = mount(AdminView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="admin-content"]').text()).toContain('REVEALING')
   })
 
   it('phase === DONE のとき操作ボタンを表示しない', async () => {

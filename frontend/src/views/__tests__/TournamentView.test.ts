@@ -44,7 +44,10 @@ vi.mock('@/components/score/ScoreEntryPanel.vue', () => ({
 function createTestRouter() {
   return createRouter({
     history: createMemoryHistory(),
-    routes: [{ path: '/', component: { template: '<div />' } }],
+    routes: [
+      { path: '/', component: { template: '<div />' } },
+      { path: '/events/:id/result', component: { template: '<div />' } },
+    ],
   })
 }
 
@@ -144,9 +147,7 @@ describe('TournamentView', () => {
     expect(wrapper.find('[data-testid="score-entry-panel"]').exists()).toBe(true)
   })
 
-  it('resultReady が true になったとき console.log が呼ばれる', async () => {
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
+  it('result_ready 受信後に router.replace で結果発表ページへ遷移する', async () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -155,14 +156,14 @@ describe('TournamentView', () => {
     })
 
     const router = createTestRouter()
+    await router.push('/')
     mount(TournamentView, { global: { plugins: [router] } })
     await flushPromises()
 
     mockResultReady.value = true
     await flushPromises()
 
-    expect(consoleSpy).toHaveBeenCalled()
-    consoleSpy.mockRestore()
+    expect(router.currentRoute.value.path).toBe('/events/event-1/result')
   })
 
   it('API 取得エラー時は待機メッセージを表示する', async () => {
