@@ -3,11 +3,13 @@ import TournamentView from '@/views/TournamentView.vue'
 import GroupView from '@/views/GroupView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import LoginView from '@/views/LoginView.vue'
+import AdminView from '@/views/AdminView.vue'
 import { useAuth } from '@/composables/useAuth'
 
 declare module 'vue-router' {
   interface RouteMeta {
     requiresAuth?: boolean
+    requiresAdmin?: boolean
     layout?: 'default' | 'plain'
   }
 }
@@ -19,13 +21,14 @@ export const router = createRouter({
     { path: '/', component: TournamentView, meta: { requiresAuth: true } },
     { path: '/group', component: GroupView, meta: { requiresAuth: true } },
     { path: '/profile', component: ProfileView, meta: { requiresAuth: true } },
+    { path: '/admin', component: AdminView, meta: { requiresAuth: true, requiresAdmin: true } },
   ],
 })
 
 let sessionRestored = false
 
 router.beforeEach(async (to) => {
-  const { isAuthenticated, isLoading, restoreSession } = useAuth()
+  const { isAuthenticated, isLoading, currentPlayer, restoreSession } = useAuth()
 
   if (!sessionRestored) {
     sessionRestored = true
@@ -37,6 +40,10 @@ router.beforeEach(async (to) => {
 
   if (to.meta.requiresAuth === true && !isAuthenticated.value) {
     return { path: '/login', query: { redirect: to.fullPath } }
+  }
+
+  if (to.meta.requiresAdmin === true && !currentPlayer.value?.isAdmin) {
+    return { path: '/' }
   }
 
   if (to.path === '/login' && isAuthenticated.value) {

@@ -46,13 +46,13 @@
 
 ## タスク 4: フロントエンド基盤修正
 
-- [ ] 4.1 (P) `useEventStream` の `PhaseUpdatePayload` に `eventId` を追加する
+- [x] 4.1 (P) `useEventStream` の `PhaseUpdatePayload` に `eventId` を追加する
   - `PhaseUpdatePayload` インターフェースに `eventId: string` フィールドを追加する
   - SSE `phase_update` イベントのハンドラが `eventId` を参照できるようになることを確認する
   - _Requirements: 3.6_
   - _Boundary: useEventStream_
 
-- [ ] 4.2 (P) `useAuth` に `isAdmin` を反映し `/admin` ルートガードを設定する
+- [x] 4.2 (P) `useAuth` に `isAdmin` を反映し `/admin` ルートガードを設定する
   - `AuthenticatedPlayer` インターフェースに `isAdmin: boolean` を追加する
   - `login` と `restoreSession` で `/me` レスポンスの `isAdmin` を `currentPlayer` に反映する
   - `router/index.ts` に `/admin` ルートを追加し、`isAdmin === false` の場合はホームへリダイレクトする管理者ガードを実装する

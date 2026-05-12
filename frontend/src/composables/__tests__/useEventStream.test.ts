@@ -84,9 +84,20 @@ describe('useEventStream', () => {
 
     connect('event-1')
     const source = MockEventSource.instances[0]
-    source.dispatchEvent('phase_update', { phase: 'REVEALING' })
+    source.dispatchEvent('phase_update', { eventId: 'event-1', phase: 'REVEALING' })
 
     expect(currentPhase.value).toBe('REVEALING')
+  })
+
+  it('phase_update イベントを受信したとき latestPhaseUpdate に eventId と phase が含まれる', async () => {
+    const { useEventStream } = await import('../useEventStream')
+    const { connect, latestPhaseUpdate } = useEventStream()
+
+    connect('event-1')
+    const source = MockEventSource.instances[0]
+    source.dispatchEvent('phase_update', { eventId: 'event-1', phase: 'COLLECTING' })
+
+    expect(latestPhaseUpdate.value).toEqual({ eventId: 'event-1', phase: 'COLLECTING' })
   })
 
   it('disconnect() を呼ぶと EventSource が close され isConnected が false になる', async () => {

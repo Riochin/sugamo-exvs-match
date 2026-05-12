@@ -5,6 +5,7 @@ import { client } from '@/api/client'
 export interface AuthenticatedPlayer {
   playerId: string
   name: string
+  isAdmin: boolean
 }
 
 export type LoginErrorCode = 'INVALID_CREDENTIALS' | 'VALIDATION_ERROR' | 'NETWORK_ERROR'
@@ -32,7 +33,7 @@ export function useAuth(): UseAuthReturn {
       const res = await client.api.auth.login.$post({ json: { playerName, pin } })
       if (res.ok) {
         const data = await res.json()
-        const player: AuthenticatedPlayer = { playerId: data.playerId, name: data.name }
+        const player: AuthenticatedPlayer = { playerId: data.playerId, name: data.name, isAdmin: data.isAdmin }
         currentPlayer.value = player
         return { ok: true, player }
       }
@@ -73,7 +74,7 @@ export function useAuth(): UseAuthReturn {
       const res = await client.api.auth.me.$get()
       if (res.ok) {
         const data = await res.json()
-        currentPlayer.value = { playerId: data.playerId, name: data.name }
+        currentPlayer.value = { playerId: data.playerId, name: data.name, isAdmin: data.isAdmin }
       } else {
         currentPlayer.value = null
       }

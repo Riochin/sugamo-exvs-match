@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import { ref, computed } from 'vue'
 
-const mockCurrentPlayer = ref<{ playerId: string; name: string } | null>(null)
+const mockCurrentPlayer = ref<{ playerId: string; name: string; isAdmin: boolean } | null>(null)
 const mockIsLoading = ref(false)
 const mockRestoreSession = vi.fn()
 
@@ -17,9 +17,9 @@ vi.mock('@/composables/useAuth', () => ({
   }),
 }))
 
-async function buildRouter(authenticated: boolean) {
+async function buildRouter(authenticated: boolean, isAdmin = false) {
   mockCurrentPlayer.value = authenticated
-    ? { playerId: 'p1', name: 'Alice' }
+    ? { playerId: 'p1', name: 'Alice', isAdmin }
     : null
   mockIsLoading.value = false
   mockRestoreSession.mockResolvedValue(undefined)
@@ -68,5 +68,23 @@ describe('ルートガード', () => {
     await router.push('/')
     await router.push('/group')
     expect(mockRestoreSession).toHaveBeenCalledTimes(1)
+  })
+
+  it('管理者ユーザーで /admin にアクセスするとそのまま表示される', async () => {
+    const router = await buildRouter(true, true)
+    await router.push('/admin')
+    expect(router.currentRoute.value.path).toBe('/admin')
+  })
+
+  it('非管理者ユーザーで /admin にアクセスすると / へリダイレクトされる', async () => {
+    const router = await buildRouter(true, false)
+    await router.push('/admin')
+    expect(router.currentRoute.value.path).toBe('/')
+  })
+
+  it('未認証で /admin にアクセスすると /login へリダイレクトされる', async () => {
+    const router = await buildRouter(false)
+    await router.push('/admin')
+    expect(router.currentRoute.value.path).toBe('/login')
   })
 })
