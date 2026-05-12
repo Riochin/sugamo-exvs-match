@@ -68,10 +68,10 @@ describe('GET /api/players', () => {
     expect(body[0]).not.toHaveProperty('pinHash')
   })
 
-  it('認証なしで 401 を返す', async () => {
+  it('認証なしでも 200 と PlayerListItem[] を返す（ログイン画面で使用するため公開エンドポイント）', async () => {
     const app = buildApp()
     const res = await app.request('/api/players', { method: 'GET' })
-    expect(res.status).toBe(401)
+    expect(res.status).toBe(200)
   })
 })
 
