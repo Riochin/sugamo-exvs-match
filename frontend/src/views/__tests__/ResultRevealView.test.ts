@@ -55,6 +55,15 @@ vi.mock('@/components/result/ResultCard.vue', () => ({
   },
 }))
 
+// StarResultsSection スタブ
+vi.mock('@/components/star/StarResultsSection.vue', () => ({
+  default: {
+    name: 'StarResultsSection',
+    props: ['eventId'],
+    template: '<div data-testid="star-results-section" :data-event-id="eventId" />',
+  },
+}))
+
 function createTestRouter(initialPath = '/events/event-1/result') {
   const router = createRouter({
     history: createMemoryHistory(),
@@ -352,5 +361,56 @@ describe('ResultRevealView', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-testid="star-vote-cta"]').exists()).toBe(false)
+  })
+
+  // ─── 7.5: StarResultsSection 統合 ──────────────────────────────────────
+
+  it('eventPhase=REVEALING のとき StarResultsSection が表示される', async () => {
+    mockEventPhase.value = 'REVEALING'
+    mockRevealPhase.value = 1
+
+    const router = createTestRouter()
+    await router.isReady()
+    const wrapper = mount(ResultRevealView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="star-results-section"]').exists()).toBe(true)
+  })
+
+  it('eventPhase=DONE のとき StarResultsSection が表示される', async () => {
+    mockEventPhase.value = 'DONE'
+    mockRevealPhase.value = 3
+
+    const router = createTestRouter()
+    await router.isReady()
+    const wrapper = mount(ResultRevealView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="star-results-section"]').exists()).toBe(true)
+  })
+
+  it('eventPhase=COLLECTING のとき StarResultsSection が表示されない', async () => {
+    mockEventPhase.value = 'COLLECTING'
+    mockRevealPhase.value = 0
+
+    const router = createTestRouter()
+    await router.isReady()
+    const wrapper = mount(ResultRevealView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="star-results-section"]').exists()).toBe(false)
+  })
+
+  it('StarResultsSection に eventId が渡される', async () => {
+    mockEventPhase.value = 'REVEALING'
+    mockRevealPhase.value = 1
+
+    const router = createTestRouter('/events/event-1/result')
+    await router.isReady()
+    const wrapper = mount(ResultRevealView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    const section = wrapper.find('[data-testid="star-results-section"]')
+    expect(section.attributes('data-event-id')).toBe('event-1')
   })
 })

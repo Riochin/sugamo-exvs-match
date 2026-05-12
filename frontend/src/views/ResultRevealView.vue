@@ -70,6 +70,12 @@
         />
       </section>
 
+      <!-- Star ランキング（REVEALING または DONE） -->
+      <StarResultsSection
+        v-if="eventPhase === 'REVEALING' || eventPhase === 'DONE'"
+        :event-id="(route.params.id as string)"
+      />
+
       <!-- DONE後 Star投票CTA（全ユーザー向け） -->
       <div v-if="eventPhase === 'DONE'" class="mt-8 flex justify-center">
         <router-link
@@ -105,6 +111,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useResultReveal } from '@/composables/useResultReveal'
 import { useAuth } from '@/composables/useAuth'
 import ResultCard from '@/components/result/ResultCard.vue'
+import StarResultsSection from '@/components/star/StarResultsSection.vue'
 
 const route = useRoute()
 const router = useRouter()
