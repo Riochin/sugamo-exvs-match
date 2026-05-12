@@ -2,8 +2,8 @@
 
 ## タスク一覧
 
-- [ ] 1. ProfileService の実装
-- [ ] 1.1 getProfile ビジネスロジックを実装する
+- [x] 1. ProfileService の実装
+- [x] 1.1 getProfile ビジネスロジックを実装する
   - `players` テーブルから指定 ID のプレイヤーを1件取得し、存在しない場合は `null` を返す
   - `scores INNER JOIN events` で `submitted = true`・`heldAt` 降順・最大5件のスコアを取得する
   - `absent = true` のエントリは `{ absent: true }` として返し、勝率を計算しない
@@ -12,7 +12,7 @@
   - `getProfile(playerId)` が存在するIDで `PlayerProfileResponse` 型の値を返し、存在しないIDで `null` を返す
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 4.2, 4.4_
 
-- [ ] 1.2 ProfileService のユニットテストを実装する
+- [x] 1.2 ProfileService のユニットテストを実装する
   - `submitted = true` のスコア5件がある通常プレイヤーで `winRateHistory` が5件返ることを検証する
   - `absent = true` のエントリが混在する場合に該当エントリが `{ absent: true }` で返ることを検証する
   - スコアが5件未満の場合に実際の件数のみ返ることを検証する
