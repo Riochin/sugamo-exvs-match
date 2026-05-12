@@ -14,18 +14,15 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   : ['http://localhost:5173']
 
 const app = new Hono()
-
-app.use(
-  '*',
-  cors({
-    origin: (origin) => (allowedOrigins.includes(origin) ? origin : null),
-    allowHeaders: ['Content-Type', 'Authorization'],
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    credentials: true,
-  })
-)
-
-app
+  .use(
+    '*',
+    cors({
+      origin: (origin) => (allowedOrigins.includes(origin) ? origin : null),
+      allowHeaders: ['Content-Type', 'Authorization'],
+      allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      credentials: true,
+    })
+  )
   .route('/api/auth', authRoute)
   .route('/api/players', playersRoute)
   .route('/api/events', eventsRoute)
