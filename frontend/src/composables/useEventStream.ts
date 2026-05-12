@@ -8,8 +8,13 @@ export interface ProgressUpdatePayload {
 
 export interface PhaseUpdatePayload {
   eventId: string
-  phase: 'COLLECTING' | 'REVEALING' | 'DONE'
+  phase: 'COLLECTING' | 'STAR_VOTING' | 'REVEALING' | 'DONE'
   revealPhase?: number
+}
+
+export interface StarVoteUpdatePayload {
+  completedCount: number
+  totalCount: number
 }
 
 export interface UseEventStreamReturn {
@@ -17,6 +22,7 @@ export interface UseEventStreamReturn {
   resultReady: Readonly<Ref<boolean>>
   currentPhase: Readonly<Ref<PhaseUpdatePayload['phase'] | null>>
   latestPhaseUpdate: Readonly<Ref<PhaseUpdatePayload | null>>
+  starVoteUpdate: Readonly<Ref<StarVoteUpdatePayload | null>>
   isConnected: Readonly<Ref<boolean>>
   connect(eventId: string): void
   disconnect(): void
@@ -27,6 +33,7 @@ export function useEventStream(): UseEventStreamReturn {
   const resultReady = ref(false)
   const currentPhase = ref<PhaseUpdatePayload['phase'] | null>(null)
   const latestPhaseUpdate = ref<PhaseUpdatePayload | null>(null)
+  const starVoteUpdate = ref<StarVoteUpdatePayload | null>(null)
   const isConnected = ref(false)
 
   let source: EventSource | null = null
@@ -50,6 +57,10 @@ export function useEventStream(): UseEventStreamReturn {
       currentPhase.value = payload.phase
       latestPhaseUpdate.value = payload
     })
+
+    source.addEventListener('star_vote_update', (e: MessageEvent) => {
+      starVoteUpdate.value = JSON.parse(e.data) as StarVoteUpdatePayload
+    })
   }
 
   function disconnect(): void {
@@ -67,6 +78,7 @@ export function useEventStream(): UseEventStreamReturn {
     resultReady,
     currentPhase,
     latestPhaseUpdate,
+    starVoteUpdate,
     isConnected,
     connect,
     disconnect,

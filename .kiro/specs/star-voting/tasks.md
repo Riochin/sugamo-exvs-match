@@ -46,8 +46,8 @@
   - _Requirements: 3.2, 4.4, 6.1, 7.1_
   - _Depends: 2.2_
 
-- [ ] 3. フロントエンド — コンポーザブルとコンポーネント実装
-- [ ] 3.1 (P) SSE クライアントと管理者フェーズ型の更新
+- [x] 3. フロントエンド — コンポーザブルとコンポーネント実装
+- [x] 3.1 (P) SSE クライアントと管理者フェーズ型の更新
   - `useEventStream.ts` に `star_vote_update` イベントリスナーを追加し、`starVoteUpdate` リアクティブ値（`Ref<{ completedCount: number; totalCount: number } | null>`）を `UseEventStreamReturn` に追加する
   - `useAdminEvent.ts` の `EventPhase` 型参照を `'STAR_VOTING'` を含む型に更新する
   - `star_vote_update` SSE を受信すると `starVoteUpdate.value` がリアルタイムに更新されること
@@ -55,7 +55,7 @@
   - _Boundary: useEventStream, useAdminEvent_
   - _Depends: 1.2_
 
-- [ ] 3.2 (P) useStarVoting コンポーザブルの実装
+- [x] 3.2 (P) useStarVoting コンポーザブルの実装
   - `loadPlayers(eventId)` で `GET /api/stars/status` を呼び出し、自己除外済みプレイヤー一覧・完了数・`hasVoted` を取得する
   - `hasVoted === true` の場合はページロード時に `submitted = true` で初期化する（リロード対応）
   - `increment(playerId)`: `remaining === 0` の場合は操作を拒否する
@@ -67,7 +67,7 @@
   - _Boundary: useStarVoting_
   - _Depends: 2.3_
 
-- [ ] 3.3 Star 投票 UI コンポーネントの実装（PlayerStarCard・StarVotingPanel・StarConfirmDialog）
+- [x] 3.3 Star 投票 UI コンポーネントの実装（PlayerStarCard・StarVotingPanel・StarConfirmDialog）
   - `PlayerStarCard`: `allocated === 0` のとき `-` ボタンを disabled、`remaining === 0 && allocated === 0` のとき `+` ボタンを disabled にし、`+`/`-` 押下で `increment`/`decrement` を呼び出す
   - `StarVotingPanel`: 残り Star 数ヘッダー・`PlayerStarCard` 一覧・投票完了人数（例: 5/12名完了）・「投票する」ボタン（`isReadyToSubmit` のときのみ活性）を描画する
   - `StarConfirmDialog`: 配分内容一覧（プレイヤー名・配分数）を表示し「確定」「戻る」を提供する

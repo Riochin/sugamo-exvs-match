@@ -10,7 +10,7 @@ export interface ScoreEntry {
   absent: boolean
 }
 
-export type EventPhase = 'COLLECTING' | 'REVEALING' | 'DONE'
+export type EventPhase = 'COLLECTING' | 'STAR_VOTING' | 'REVEALING' | 'DONE'
 
 export interface EventWithScores {
   id: string
