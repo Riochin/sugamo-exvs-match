@@ -33,15 +33,15 @@ interface ActiveEvent {
 }
 
 const router = useRouter()
-const { progressUpdate, resultReady, currentPhase, connect } = useEventStream()
+const { progressUpdate, currentPhase, connect } = useEventStream()
 
 const activeEvent = ref<ActiveEvent | null>(null)
 const initialPhase = ref<'COLLECTING' | 'REVEALING' | 'DONE' | null>(null)
 
 const phase = computed(() => currentPhase.value ?? initialPhase.value)
 
-watch(resultReady, (ready) => {
-  if (ready && activeEvent.value) {
+watch(currentPhase, (phase) => {
+  if (phase === 'REVEALING' && activeEvent.value) {
     router.replace(`/events/${activeEvent.value.id}/result`)
   }
 })
@@ -56,6 +56,12 @@ onMounted(async () => {
 
     activeEvent.value = event
     initialPhase.value = event.phase
+
+    if (event.phase === 'REVEALING') {
+      router.replace(`/events/${event.id}/result`)
+      return
+    }
+
     connect(event.id)
   } catch {
     // activeEvent = null のまま待機メッセージを表示
