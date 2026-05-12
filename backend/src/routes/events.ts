@@ -19,6 +19,10 @@ function errorToStatus(code: string): 400 | 404 | 409 {
 }
 
 export const eventsRoute = new Hono()
+  .get('/active', async (c) => {
+    const event = await eventService.getActiveEvent()
+    return c.json({ event })
+  })
   .use('/*', authMiddleware)
   .post('/', adminMiddleware, zValidator('json', createEventSchema), async (c) => {
     const { heldAt } = c.req.valid('json')

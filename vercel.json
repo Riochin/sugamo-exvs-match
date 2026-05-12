@@ -3,6 +3,7 @@
   "outputDirectory": "frontend/dist",
   "installCommand": "pnpm install",
   "rewrites": [
+    { "source": "/api/:path*", "destination": "https://sugamobackend-production.up.railway.app/api/:path*" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
