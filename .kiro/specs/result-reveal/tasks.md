@@ -102,8 +102,8 @@
   - _Requirements: 5.4, 5.7_
   - _Boundary: ResultCard_
 
-- [ ] 7. ResultRevealViewページ実装
-- [ ] 7.1 没入型フルスクリーンページの基盤・認証ガード・初期化処理を実装する
+- [x] 7. ResultRevealViewページ実装
+- [x] 7.1 没入型フルスクリーンページの基盤・認証ガード・初期化処理を実装する
   - views/ResultRevealView.vue を新規作成し、layout: 'plain' メタで BottomNav を非表示にする
   - bg-[#090014] ダークテーマの全画面レイアウトを実装する
   - onMounted で useResultReveal.initialize(route.params.id) を呼び出す
@@ -112,7 +112,7 @@
   - _Requirements: 1.4, 5.1, 5.6_
   - _Boundary: ResultRevealView_
 
-- [ ] 7.2 フェーズ別グループ表示・アニメーション演出・情報秘匿を実装する
+- [x] 7.2 フェーズ別グループ表示・アニメーション演出・情報秘匿を実装する
   - revealPhase に応じて FIRST_STAY（phase>=1）・SECOND_STAY（phase>=2）・BORDER（phase>=3）を v-if/v-show で条件付きレンダリングする
   - 各グループの見出し（「1軍残留」「2軍残留」「ボーダー」）を強調スタイルで表示する
   - Tailwind `transition-all duration-700` とスタガードアニメーション（`index * 100ms` の transition-delay）でフェード・スライド演出を実装する
@@ -121,7 +121,7 @@
   - _Requirements: 2.1, 2.2, 5.2, 5.3, 5.5_
   - _Boundary: ResultRevealView_
 
-- [ ] 7.3 管理者フェーズ進行UIとDONE後のCTA表示を実装する
+- [x] 7.3 管理者フェーズ進行UIとDONE後のCTA表示を実装する
   - currentPlayer.isAdmin が true の場合のみ「次のフェーズへ」ボタンを表示する
   - revealPhase === 3 または eventPhase === 'DONE' のときボタンを disabled にする
   - eventPhase === 'DONE' のとき全ユーザーに Star投票ページへの CTAボタンを表示する
