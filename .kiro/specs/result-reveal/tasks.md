@@ -145,8 +145,8 @@
   - _Requirements: 2.3_
   - _Boundary: AdminView_
 
-- [ ] 9. テスト実装
-- [ ] 9.1 (P) ResultServiceのユニットテストを実装する
+- [x] 9. テスト実装
+- [x] 9.1 (P) ResultServiceのユニットテストを実装する
   - 勝利数降順・勝率二次ソートによる正確なランキング算出を検証する
   - 標準ケースで FIRST_STAY / SECOND_STAY / BORDER（PROMOTION・RELEGATION）の分類が正しいことを確認する
   - 欠席者を含む場合の分類（欠席者は group=null）を検証する
@@ -155,7 +155,7 @@
   - _Requirements: 4.1, 4.2, 4.3_
   - _Boundary: ResultService_
 
-- [ ] 9.2 (P) resultRouteのインテグレーションテストを実装する
+- [x] 9.2 (P) resultRouteのインテグレーションテストを実装する
   - GET /api/events/:id/result：認証あり→200・未認証→401・不明ID→404 を検証する
   - PATCH /api/events/:id/reveal-phase：管理者→200・非管理者→403・phase3済み→409 を検証する
   - revealPhase=3 のとき event.phase が DONE に更新されることを確認する
@@ -164,7 +164,7 @@
   - _Requirements: 2.5, 4.4, 4.5, 6.1_
   - _Boundary: resultRoute_
 
-- [ ]* 9.3 useResultRevealのユニットテストを実装する
+- [x] 9.3 useResultRevealのユニットテストを実装する
   - SSE再接続ロジック（1回成功・3回失敗・再接続後フェーズ同期）を検証する
   - initialize が revealPhase を正しく初期化することを確認する
   - advancePhase 失敗時に error 状態が設定されることを確認する
