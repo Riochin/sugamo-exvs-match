@@ -6,11 +6,13 @@ import { eventsRoute } from './routes/events.js'
 import { scoresRoute } from './routes/scores.js'
 import { starsRoute } from './routes/stars.js'
 import { streamRoute } from './routes/stream.js'
+import { resultRoute } from './routes/result.js'
 
 const app = new Hono()
   .route('/api/auth', authRoute)
   .route('/api/players', playersRoute)
   .route('/api/events', eventsRoute)
+  .route('/api/events', resultRoute)
   .route('/api/scores', scoresRoute)
   .route('/api/stars', starsRoute)
   .route('/api/stream', streamRoute)

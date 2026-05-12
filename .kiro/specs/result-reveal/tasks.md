@@ -31,8 +31,8 @@
   - _Requirements: 2.3, 2.6, 4.4, 6.1, 6.3_
   - _Boundary: ResultService_
 
-- [ ] 3. バックエンドAPI：resultRouteエンドポイント実装
-- [ ] 3.1 結果データ取得APIエンドポイントを実装する
+- [x] 3. バックエンドAPI：resultRouteエンドポイント実装
+- [x] 3.1 結果データ取得APIエンドポイントを実装する
   - result.ts を新規作成し、GET /api/events/:id/result を authMiddleware で保護して実装する
   - ResultService.getRevealResult を呼び出し RevealResult を JSON で返す
   - EVENT_NOT_FOUND の場合は 404、未認証は 401 を返す
@@ -41,7 +41,7 @@
   - _Requirements: 4.4, 4.5, 6.3_
   - _Boundary: resultRoute_
 
-- [ ] 3.2 フェーズ進行APIエンドポイントを実装する
+- [x] 3.2 フェーズ進行APIエンドポイントを実装する
   - PATCH /api/events/:id/reveal-phase を authMiddleware + adminMiddleware で保護して実装する
   - ResultService.advanceRevealPhase を呼び出し { revealPhase, eventPhase } を返す
   - PHASE_NOT_REVEALING / REVEAL_PHASE_MAXED の場合は 409 を返す
