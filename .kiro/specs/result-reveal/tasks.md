@@ -93,7 +93,7 @@
   - _Requirements: 2.4, 6.2_
   - _Boundary: useResultReveal_
 
-- [ ] 6. (P) ResultCardプレイヤーカードコンポーネントを実装する
+- [x] 6. (P) ResultCardプレイヤーカードコンポーネントを実装する
   - components/result/ResultCard.vue を新規作成し、`player: PlayerResult` と `rank: number | null` を Props として受け取る
   - プレイヤー名・今大会の勝敗数（wins-losses）・最終順位を表示する
   - borderDirection が PROMOTION の場合は yellow-400 の上向き矢印インジケーターを表示する
