@@ -1,0 +1,2 @@
+ALTER TABLE `scores` ADD `star_voting_submitted` integer DEFAULT false NOT NULL;--> statement-breakpoint
+CREATE UNIQUE INDEX `stars_event_from_to_uniq` ON `stars` (`event_id`,`from_player_id`,`to_player_id`);

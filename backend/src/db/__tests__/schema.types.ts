@@ -49,6 +49,14 @@ const _event3: Event = {
   createdAt: new Date(),
 }
 
+const _event4: Event = {
+  id: 'event-4',
+  heldAt: new Date(),
+  phase: 'STAR_VOTING',
+  revealPhase: 0,
+  createdAt: new Date(),
+}
+
 // Score 型の検証
 const _score: Score = {
   id: 'score-1',
@@ -58,6 +66,7 @@ const _score: Score = {
   losses: 1,
   absent: false,
   submitted: true,
+  starVotingSubmitted: false,
 }
 
 const _scoreAbsent: Score = {
@@ -68,6 +77,7 @@ const _scoreAbsent: Score = {
   losses: 0,
   absent: true,
   submitted: false,
+  starVotingSubmitted: false,
 }
 
 // Star 型の検証
@@ -85,6 +95,7 @@ void _player2
 void _event
 void _event2
 void _event3
+void _event4
 void _score
 void _scoreAbsent
 void _star

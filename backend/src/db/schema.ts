@@ -14,7 +14,7 @@ export const players = sqliteTable('players', {
 export const events = sqliteTable('events', {
   id: text('id').primaryKey(),
   heldAt: integer('held_at', { mode: 'timestamp' }).notNull(),
-  phase: text('phase', { enum: ['COLLECTING', 'REVEALING', 'DONE'] }).notNull(),
+  phase: text('phase', { enum: ['COLLECTING', 'STAR_VOTING', 'REVEALING', 'DONE'] }).notNull(),
   revealPhase: integer('reveal_phase').notNull().default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
 })
@@ -33,23 +33,36 @@ export const scores = sqliteTable(
     losses: integer('losses').notNull().default(0),
     absent: integer('absent', { mode: 'boolean' }).notNull().default(false),
     submitted: integer('submitted', { mode: 'boolean' }).notNull().default(false),
+    starVotingSubmitted: integer('star_voting_submitted', { mode: 'boolean' })
+      .notNull()
+      .default(false),
   },
   (table) => [uniqueIndex('scores_event_player_uniq').on(table.eventId, table.playerId)],
 )
 
-export const stars = sqliteTable('stars', {
-  id: text('id').primaryKey(),
-  eventId: text('event_id')
-    .notNull()
-    .references(() => events.id),
-  fromPlayerId: text('from_player_id')
-    .notNull()
-    .references(() => players.id),
-  toPlayerId: text('to_player_id')
-    .notNull()
-    .references(() => players.id),
-  count: integer('count').notNull(),
-})
+export const stars = sqliteTable(
+  'stars',
+  {
+    id: text('id').primaryKey(),
+    eventId: text('event_id')
+      .notNull()
+      .references(() => events.id),
+    fromPlayerId: text('from_player_id')
+      .notNull()
+      .references(() => players.id),
+    toPlayerId: text('to_player_id')
+      .notNull()
+      .references(() => players.id),
+    count: integer('count').notNull(),
+  },
+  (table) => [
+    uniqueIndex('stars_event_from_to_uniq').on(
+      table.eventId,
+      table.fromPlayerId,
+      table.toPlayerId,
+    ),
+  ],
+)
 
 export type Player = typeof players.$inferSelect
 export type Event = typeof events.$inferSelect
