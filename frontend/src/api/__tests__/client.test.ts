@@ -14,7 +14,7 @@ describe('client', () => {
 
     const { client } = await import('../client')
 
-    expect(hc).toHaveBeenCalledWith('/')
+    expect(hc).toHaveBeenCalledWith('/', expect.objectContaining({ fetch: expect.any(Function) }))
     expect(client).toBe(mockClient)
   })
 
@@ -25,7 +25,7 @@ describe('client', () => {
 
     const { client } = await import('../client')
 
-    expect(hc).toHaveBeenCalledWith('https://api.example.com')
+    expect(hc).toHaveBeenCalledWith('https://api.example.com', expect.objectContaining({ fetch: expect.any(Function) }))
     vi.unstubAllEnvs()
   })
 })
