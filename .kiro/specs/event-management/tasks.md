@@ -35,7 +35,7 @@
 
 ## タスク 3: イベント API エンドポイントの実装
 
-- [ ] 3.1 `eventsRoute` に大会管理の全エンドポイントを実装する
+- [x] 3.1 `eventsRoute` に大会管理の全エンドポイントを実装する
   - `POST /api/events`（`adminMiddleware` 適用、`heldAt` を zod で ISO 8601 文字列 → Date にバリデーション）
   - `GET /api/events/active`（`authMiddleware` のみ、進行中大会と全スコアを `{ event: EventWithScores | null }` で返す）
   - `GET /api/events`（`authMiddleware` のみ、DONE 大会を `EventSummary[]` で降順に返す）
