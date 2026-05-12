@@ -1,0 +1,1 @@
+ALTER TABLE `scores` ADD `submitted` integer DEFAULT false NOT NULL;

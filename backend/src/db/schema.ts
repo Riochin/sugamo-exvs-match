@@ -31,6 +31,7 @@ export const scores = sqliteTable(
     wins: integer('wins').notNull().default(0),
     losses: integer('losses').notNull().default(0),
     absent: integer('absent', { mode: 'boolean' }).notNull().default(false),
+    submitted: integer('submitted', { mode: 'boolean' }).notNull().default(false),
   },
   (table) => [uniqueIndex('scores_event_player_uniq').on(table.eventId, table.playerId)],
 )

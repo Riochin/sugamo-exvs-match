@@ -1,6 +1,6 @@
 # 実装計画
 
-- [ ] 1. scoresテーブルにsubmittedカラムを追加してマイグレーションを適用する
+- [x] 1. scoresテーブルにsubmittedカラムを追加してマイグレーションを適用する
   - `backend/src/db/schema.ts` の scores テーブルに `submitted: integer('submitted', { mode: 'boolean' }).notNull().default(false)` を追加する
   - `drizzle-kit generate` でマイグレーションファイルを生成し内容を確認する
   - `drizzle-kit migrate` で Turso に適用し、既存レコードが全て `submitted=false` で初期化されることを確認する
