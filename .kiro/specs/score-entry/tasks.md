@@ -6,8 +6,8 @@
   - `drizzle-kit migrate` で Turso に適用し、既存レコードが全て `submitted=false` で初期化されることを確認する
   - _Requirements: 1.1, 3.1, 3.3_
 
-- [ ] 2. バックエンド: ScoreService と scoresRoute の実装
-- [ ] 2.1 ScoreServiceにスコア提出ビジネスロジックを実装する
+- [x] 2. バックエンド: ScoreService と scoresRoute の実装
+- [x] 2.1 ScoreServiceにスコア提出ビジネスロジックを実装する
   - `backend/src/services/score-service.ts` を新規作成し `submitScore({ playerId, matches, wins })` を実装する
   - アクティブイベントを取得し、フェーズが `COLLECTING` 以外なら `{ code: 'PHASE_NOT_COLLECTING' }` を返す
   - プレイヤーの `absent` フラグを確認し、`absent=true` なら `{ code: 'PLAYER_ABSENT' }` を返す
@@ -18,7 +18,7 @@
   - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 3.1, 3.2, 3.3, 3.4, 5.5_
   - _Boundary: ScoreService_
 
-- [ ] 2.2 scoresRouteにHTTPハンドラとZodバリデーションを実装する
+- [x] 2.2 scoresRouteにHTTPハンドラとZodバリデーションを実装する
   - `backend/src/routes/scores.ts` の `POST /` ハンドラに `authMiddleware` を適用し、未認証リクエストに 401 を返す
   - `matches: z.number().int().min(0)` / `wins: z.number().int().min(0)` / `.refine(data => data.wins <= data.matches)` の zod スキーマを `zValidator` で設定する
   - `ScoreService.submitScore()` を呼び出し結果に応じて 200 / 400 / 401 / 404 / 409 を返す
