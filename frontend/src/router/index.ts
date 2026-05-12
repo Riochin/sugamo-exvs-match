@@ -4,6 +4,7 @@ import GroupView from '@/views/GroupView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import LoginView from '@/views/LoginView.vue'
 import AdminView from '@/views/AdminView.vue'
+import ResultRevealView from '@/views/ResultRevealView.vue'
 import { useAuth } from '@/composables/useAuth'
 
 declare module 'vue-router' {
@@ -22,6 +23,7 @@ export const router = createRouter({
     { path: '/group', component: GroupView, meta: { requiresAuth: true } },
     { path: '/profile/:id', component: ProfileView, meta: { requiresAuth: true } },
     { path: '/admin', component: AdminView, meta: { requiresAuth: true, requiresAdmin: true } },
+    { path: '/events/:id/result', component: ResultRevealView, meta: { requiresAuth: true, layout: 'plain' } },
   ],
 })
 

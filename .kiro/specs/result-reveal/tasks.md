@@ -50,15 +50,15 @@
   - _Requirements: 2.3, 2.5, 6.1_
   - _Boundary: resultRoute_
 
-- [ ] 4. フロントエンド基盤：SSEペイロード拡張とルーティング設定
-- [ ] 4.1 (P) SSE phase_updateペイロードにrevealPhaseフィールドを追加する
+- [x] 4. フロントエンド基盤：SSEペイロード拡張とルーティング設定
+- [x] 4.1 (P) SSE phase_updateペイロードにrevealPhaseフィールドを追加する
   - useEventStream.ts の PhaseUpdatePayload 型に `revealPhase?: number` フィールドを追加する
   - オプショナル追加のため既存コードへの後方互換性を保つ
   - phase_update イベント受信時に revealPhase フィールドに型安全にアクセスできること
   - _Requirements: 3.1_
   - _Boundary: useEventStream_
 
-- [ ] 4.2 (P) 結果発表ページのルート定義とナビゲーションガードを追加する
+- [x] 4.2 (P) 結果発表ページのルート定義とナビゲーションガードを追加する
   - router/index.ts に `/events/:id/result` ルートを追加する（`requiresAuth: true, layout: 'plain'`）
   - 未認証アクセスでログインページへリダイレクトされること
   - layout: 'plain' メタにより App.vue の BottomNav が非表示になること

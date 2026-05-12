@@ -100,6 +100,28 @@ describe('useEventStream', () => {
     expect(latestPhaseUpdate.value).toEqual({ eventId: 'event-1', phase: 'COLLECTING' })
   })
 
+  it('phase_update イベントに revealPhase フィールドが含まれる場合 latestPhaseUpdate に反映される', async () => {
+    const { useEventStream } = await import('../useEventStream')
+    const { connect, latestPhaseUpdate } = useEventStream()
+
+    connect('event-1')
+    const source = MockEventSource.instances[0]
+    source.dispatchEvent('phase_update', { eventId: 'event-1', phase: 'REVEALING', revealPhase: 2 })
+
+    expect(latestPhaseUpdate.value).toEqual({ eventId: 'event-1', phase: 'REVEALING', revealPhase: 2 })
+  })
+
+  it('phase_update イベントに revealPhase がない場合も latestPhaseUpdate が正常に設定される', async () => {
+    const { useEventStream } = await import('../useEventStream')
+    const { connect, latestPhaseUpdate } = useEventStream()
+
+    connect('event-1')
+    const source = MockEventSource.instances[0]
+    source.dispatchEvent('phase_update', { eventId: 'event-1', phase: 'COLLECTING' })
+
+    expect(latestPhaseUpdate.value?.revealPhase).toBeUndefined()
+  })
+
   it('disconnect() を呼ぶと EventSource が close され isConnected が false になる', async () => {
     const { useEventStream } = await import('../useEventStream')
     const { connect, disconnect, isConnected } = useEventStream()

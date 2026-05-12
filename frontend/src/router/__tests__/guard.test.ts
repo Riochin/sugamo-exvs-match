@@ -87,4 +87,23 @@ describe('ルートガード', () => {
     await router.push('/admin')
     expect(router.currentRoute.value.path).toBe('/login')
   })
+
+  it('認証済みで /events/:id/result にアクセスするとそのまま表示される', async () => {
+    const router = await buildRouter(true)
+    await router.push('/events/event-1/result')
+    expect(router.currentRoute.value.path).toBe('/events/event-1/result')
+  })
+
+  it('未認証で /events/:id/result にアクセスすると /login へリダイレクトされる', async () => {
+    const router = await buildRouter(false)
+    await router.push('/events/event-1/result')
+    expect(router.currentRoute.value.path).toBe('/login')
+    expect(router.currentRoute.value.query.redirect).toBe('/events/event-1/result')
+  })
+
+  it('/events/:id/result ルートは layout: plain メタを持つ', async () => {
+    const router = await buildRouter(true)
+    await router.push('/events/event-1/result')
+    expect(router.currentRoute.value.meta.layout).toBe('plain')
+  })
 })

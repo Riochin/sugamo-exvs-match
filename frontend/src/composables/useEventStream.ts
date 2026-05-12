@@ -9,6 +9,7 @@ export interface ProgressUpdatePayload {
 export interface PhaseUpdatePayload {
   eventId: string
   phase: 'COLLECTING' | 'REVEALING' | 'DONE'
+  revealPhase?: number
 }
 
 export interface UseEventStreamReturn {
