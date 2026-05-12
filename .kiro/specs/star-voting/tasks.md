@@ -105,15 +105,15 @@
   - _Boundary: StarResultsSection, ResultRevealView_
   - _Depends: 2.3_
 
-- [ ] 5. テスト — ユニット・統合テスト
-- [ ] 5.1 (P) star-service ユニットテスト
+- [x] 5. テスト — ユニット・統合テスト
+- [x] 5.1 (P) star-service ユニットテスト
   - `submitVote` の検証: 自己投票（`SELF_VOTE_FORBIDDEN`）・合計≠3（`INVALID_TOTAL`）・二重投票（`ALREADY_VOTED`）・STAR_VOTING 外フェーズ（`PHASE_NOT_STAR_VOTING`）・正常系 の各ケース
   - 全員投票完了時に `events.phase` が `'REVEALING'` に遷移し SSE ブロードキャストが呼ばれることを検証する
   - `getResults` の検証: 同順位計算（複数プレイヤー同数 Star での同 rank）・空集計・部分投票時の各ケース
   - _Requirements: 3.2, 3.3, 4.7, 5.1, 5.4, 7.4, 8.1, 8.2, 8.3_
   - _Boundary: star-service_
 
-- [ ] 5.2 (P) useStarVoting ユニットテスト
+- [x] 5.2 (P) useStarVoting ユニットテスト
   - `increment`: `remaining === 0` のとき配分数が変化しないことを検証する
   - `decrement`: `allocated === 0` のとき配分数が変化しないことを検証する
   - `isReadyToSubmit`: `remaining === 0` のときのみ `true` になることを検証する
@@ -121,7 +121,7 @@
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 4.1_
   - _Boundary: useStarVoting_
 
-- [ ] 5.3 バックエンド統合テスト（API・フェーズ自動遷移）
+- [x] 5.3 バックエンド統合テスト（API・フェーズ自動遷移）
   - `POST /api/stars` 正常系: `stars` 行と `scores.starVotingSubmitted = true` が DB に保存されることを確認する
   - `POST /api/stars` 二重投票: 409 レスポンスが返ることを確認する
   - `POST /api/stars` STAR_VOTING 外フェーズ: 409 レスポンスが返ることを確認する
