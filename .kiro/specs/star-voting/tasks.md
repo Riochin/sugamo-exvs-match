@@ -75,8 +75,8 @@
   - _Requirements: 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 4.1, 4.3, 6.1_
   - _Depends: 3.2_
 
-- [ ] 4. 統合 — 画面・ルーティング・結果表示の組み立て
-- [ ] 4.1 (P) StarVotingView の実装（投票画面の組み立てと SSE 統合）
+- [x] 4. 統合 — 画面・ルーティング・結果表示の組み立て
+- [x] 4.1 (P) StarVotingView の実装（投票画面の組み立てと SSE 統合）
   - `onMounted` で `useStarVoting.loadPlayers(eventId)` を呼び出しプレイヤー一覧を取得する
   - `useEventStream.connect(eventId)` で SSE に接続し、`star_vote_update` 受信時に完了人数表示を更新する
   - `phase_update REVEALING` 受信時に `/events/:id/result` へ自動遷移する
@@ -87,7 +87,7 @@
   - _Boundary: StarVotingView_
   - _Depends: 3.1, 3.2, 3.3_
 
-- [ ] 4.2 (P) フロントエンドルーティングと TournamentView の STAR_VOTING 遷移
+- [x] 4.2 (P) フロントエンドルーティングと TournamentView の STAR_VOTING 遷移
   - `router/index.ts` に `/events/:id/star-voting` ルートを追加する（`requiresAuth: true`、`layout: 'plain'`、コンポーネント: `StarVotingView`）
   - `TournamentView.vue` の `phase_update` ハンドラに `STAR_VOTING` を受信したとき `/events/:id/star-voting` へ遷移する処理を追加する
   - スコア全員入力完了後、すべてのクライアントが `StarVotingView` 画面へ自動遷移すること
@@ -95,7 +95,7 @@
   - _Boundary: router, TournamentView_
   - _Depends: 1.2_
 
-- [ ] 4.3 (P) StarResultsSection の実装と ResultRevealView への統合
+- [x] 4.3 (P) StarResultsSection の実装と ResultRevealView への統合
   - `StarResultsSection`: `onMounted` で `GET /api/stars/results/:eventId` を呼び出しランキングデータを取得する
   - `rank`・`playerName`・`starCount`（`★` アイコン、`yellow-400`）を Star 数降順で描画する
   - 同数 Star のプレイヤーには同一 `rank` 値を表示する
