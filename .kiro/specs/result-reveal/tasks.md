@@ -8,8 +8,8 @@
   - マイグレーション適用後、schema.ts の型推論が revealPhase フィールドを含む状態になること
   - _Requirements: 2.6_
 
-- [ ] 2. バックエンドサービス：ResultService実装
-- [ ] 2.1 全プレイヤーの順位計算とグループ分類ロジックを実装する
+- [x] 2. バックエンドサービス：ResultService実装
+- [x] 2.1 全プレイヤーの順位計算とグループ分類ロジックを実装する
   - result-service.ts を新規作成し、scores テーブルから各プレイヤーの wins/losses/absent を集計する
   - 勝率（wins/(wins+losses)、0/0 は 0.0）降順、同勝率の場合は勝利数降順で順位を付与する
   - FIRST/SECOND チームの非欠席人数 F/S を集計し、rank<=F を1軍スロット・rank>F を2軍スロットとして判定する
@@ -20,7 +20,7 @@
   - _Requirements: 4.1, 4.2, 4.3_
   - _Boundary: ResultService_
 
-- [ ] 2.2 結果データ取得・フェーズ進行制御・DONE自動遷移を実装する
+- [x] 2.2 結果データ取得・フェーズ進行制御・DONE自動遷移を実装する
   - getRevealResult(eventId) メソッドで events/scores/players を結合して RevealResult を組み立てる
   - events.phase が DONE の場合も revealPhase を含む正常な結果を返す（6.3 を満たす）
   - advanceRevealPhase(eventId) メソッドで revealPhase をインクリメントして DB に保存する
