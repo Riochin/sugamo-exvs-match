@@ -65,8 +65,8 @@
   - _Requirements: 1.5, 5.6_
   - _Boundary: Router_
 
-- [ ] 5. フロントエンドコンポーザブル：useResultReveal実装
-- [ ] 5.1 結果データ取得・初期フェーズ同期・状態管理を実装する
+- [x] 5. フロントエンドコンポーザブル：useResultReveal実装
+- [x] 5.1 結果データ取得・初期フェーズ同期・状態管理を実装する
   - useResultReveal.ts を新規作成し、result・revealPhase・eventPhase・isConnected・isLoading・error のリアクティブ状態を定義する
   - initialize(eventId) で GET /api/events/:id/result を呼び出し revealPhase・eventPhase・players を初期化する
   - その後 useEventStream().connect(eventId) でSSE接続を開始する
@@ -76,7 +76,7 @@
   - _Requirements: 2.1, 3.2, 3.5, 6.4_
   - _Boundary: useResultReveal_
 
-- [ ] 5.2 SSE切断検知・自動再接続・再接続後フェーズ同期を実装する
+- [x] 5.2 SSE切断検知・自動再接続・再接続後フェーズ同期を実装する
   - EventSource.onerror を検知したら接続をクローズし指数バックオフ（`2^(retryCount-1) * 1000ms`）で再接続を試みる
   - 最大3回の再接続試行を実施し、超過時は isConnected=false のままエラーメッセージを設定する
   - 再接続成功後に GET /api/events/:id/result を呼び出して revealPhase を現在フェーズに同期する
@@ -84,7 +84,7 @@
   - _Requirements: 3.3, 3.4_
   - _Boundary: useResultReveal_
 
-- [ ] 5.3 フェーズ進行操作・ローディング制御・クリーンアップを実装する
+- [x] 5.3 フェーズ進行操作・ローディング制御・クリーンアップを実装する
   - advancePhase() で PATCH /api/events/:id/reveal-phase を呼び出す
   - 呼び出し中は isLoading=true にして二重送信を防ぐ
   - PATCH 失敗時は error 状態にエラーメッセージを設定する
