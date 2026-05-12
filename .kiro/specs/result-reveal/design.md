@@ -369,12 +369,15 @@ interface ResultService {
 1. 非欠席プレイヤーを (wins / (wins+losses)) DESC, wins DESC でソートして rank を付与
 2. F = 非欠席 FIRST チーム人数, S = 非欠席 SECOND チーム人数
 3. rank <= F のプレイヤーが「1軍スロット」、rank > F のプレイヤーが「2軍スロット」
-4. FIRST チーム × 1軍スロット → FIRST_STAY
-   SECOND チーム × 2軍スロット → SECOND_STAY
-   FIRST チーム × 2軍スロット → BORDER (borderDirection: RELEGATION)
-   SECOND チーム × 1軍スロット → BORDER (borderDirection: PROMOTION)
-5. 欠席者は rank=null, group=null, borderDirection=null
+4. BORDER_LIMIT = 2（各チームから入れ替え対象になれる最大人数）
+5. 1軍スロットに入った SECOND プレイヤーのうち上位 BORDER_LIMIT 名 → BORDER (PROMOTION)
+   2軍スロットに落ちた FIRST プレイヤーのうち下位 BORDER_LIMIT 名 → BORDER (RELEGATION)
+   上記以外の FIRST → FIRST_STAY
+   上記以外の SECOND → SECOND_STAY
+6. 欠席者は rank=null, group=null, borderDirection=null
 ```
+
+> **制約**: BORDER は各チームから最大 2 名。スロット超過分（例: SECOND が 3 人全員 1 軍スロットに入った場合）は上位 2 名のみ PROMOTION とし、残りは SECOND_STAY に格下げする。RELEGATION も同様に下位 2 名のみ。
 
 **Implementation Notes**
 - 統計が0勝0敗（試合なし）の場合、勝率計算は 0/0 → 0.0 として安全に処理する
