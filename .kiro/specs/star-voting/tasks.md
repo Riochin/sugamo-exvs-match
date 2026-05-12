@@ -18,8 +18,8 @@
   - 型変更に伴う既存コードの型エラーをすべて解消し、`tsc` が正常終了すること
   - _Requirements: 6.2, 8.1, 8.2, 8.4_
 
-- [ ] 2. バックエンド — ビジネスロジックと API 実装
-- [ ] 2.1 (P) スコア入力完了時の STAR_VOTING フェーズ自動遷移
+- [x] 2. バックエンド — ビジネスロジックと API 実装
+- [x] 2.1 (P) スコア入力完了時の STAR_VOTING フェーズ自動遷移
   - `score-service.ts` の全スコア完了ブランチで `result_ready` ブロードキャストを廃止する
   - 全スコア完了検出時に `events.phase` を `'STAR_VOTING'` に DB 更新する処理を追加する
   - `phase_update { eventId, phase: 'STAR_VOTING' }` SSE イベントをハブ経由でブロードキャストする
@@ -28,7 +28,7 @@
   - _Boundary: score-service_
   - _Depends: 1.2_
 
-- [ ] 2.2 (P) Star 投票サービス（star-service）の実装
+- [x] 2.2 (P) Star 投票サービス（star-service）の実装
   - `submitVote`: フェーズ確認・自己投票禁止・二重投票禁止・合計 3 検証を Drizzle トランザクション内で実行し、`stars` INSERT と `scores.starVotingSubmitted = true` 更新をアトミックに行う
   - 全員投票完了時に `events.phase = 'REVEALING'` に更新し `phase_update REVEALING` SSE をブロードキャストする
   - `getVotingStatus`: 自己プレイヤーを除外した参加プレイヤー一覧・完了数・`hasVoted` フラグを返す
@@ -38,7 +38,7 @@
   - _Boundary: star-service_
   - _Depends: 1.1, 1.2_
 
-- [ ] 2.3 Star 投票 API ルートの実装（POST /api/stars・GET /status・GET /results/:eventId）
+- [x] 2.3 Star 投票 API ルートの実装（POST /api/stars・GET /status・GET /results/:eventId）
   - `POST /api/stars`: Zod で `allocations` を検証し `star-service.submitVote` を呼び出す。エラーコードを正しい HTTP ステータス（`ALREADY_VOTED`/`PHASE_NOT_STAR_VOTING` → 409、`SELF_VOTE_FORBIDDEN`/`INVALID_TOTAL` → 422、`NO_ACTIVE_VOTING_EVENT` → 404）にマッピングする
   - `GET /api/stars/status`: `authMiddleware` を適用し `getVotingStatus` の結果を返す
   - `GET /api/stars/results/:eventId`: `authMiddleware` を適用し `getResults` の結果を `{ rankings }` 形式で返す

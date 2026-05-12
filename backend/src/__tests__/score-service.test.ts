@@ -117,7 +117,7 @@ describe('ScoreService', () => {
       expect(vi.mocked(hub.broadcast)).toHaveBeenCalledWith('event-1', 'progress_update', { completedCount: 1, totalCount: 3 })
     })
 
-    it('全員完了時に hub.broadcast("result_ready", ...) が呼ばれる', async () => {
+    it('全員完了時に events.phase を STAR_VOTING に更新して phase_update をブロードキャストする', async () => {
       const { db } = await import('../db/client.js')
       const { hub } = await import('../routes/stream.js')
       const collectingEvent = { id: 'event-1', heldAt: new Date(), phase: 'COLLECTING', createdAt: new Date() }
@@ -133,11 +133,10 @@ describe('ScoreService', () => {
           where: vi.fn().mockResolvedValue([scoreRecord]),
         }),
       } as any)
-      vi.mocked(db.update).mockReturnValueOnce({
-        set: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue({ rowsAffected: 1 }),
-        }),
-      } as any)
+      // 1st update: score submission
+      const scoreWhereMock = vi.fn().mockResolvedValue({ rowsAffected: 1 })
+      const scoreSetMock = vi.fn().mockReturnValue({ where: scoreWhereMock })
+      vi.mocked(db.update).mockReturnValueOnce({ set: scoreSetMock } as any)
       // completed = total = 3
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
@@ -149,6 +148,10 @@ describe('ScoreService', () => {
           where: vi.fn().mockResolvedValue([{ count: 3 }]),
         }),
       } as any)
+      // 2nd update: phase → STAR_VOTING
+      const phaseWhereMock = vi.fn().mockResolvedValue({ rowsAffected: 1 })
+      const phaseSetMock = vi.fn().mockReturnValue({ where: phaseWhereMock })
+      vi.mocked(db.update).mockReturnValueOnce({ set: phaseSetMock } as any)
 
       const result = await scoreService.submitScore({ playerId: 'p3', matches: 4, wins: 2 })
 
@@ -156,7 +159,12 @@ describe('ScoreService', () => {
       if (!('code' in result)) {
         expect(result.allCompleted).toBe(true)
       }
-      expect(vi.mocked(hub.broadcast)).toHaveBeenCalledWith('event-1', 'result_ready', { eventId: 'event-1' })
+      expect(phaseSetMock).toHaveBeenCalledWith({ phase: 'STAR_VOTING' })
+      expect(vi.mocked(hub.broadcast)).toHaveBeenCalledWith(
+        'event-1',
+        'phase_update',
+        { eventId: 'event-1', phase: 'STAR_VOTING' },
+      )
     })
 
     it('一部未完了時は result_ready が呼ばれない', async () => {
@@ -195,7 +203,7 @@ describe('ScoreService', () => {
       await scoreService.submitScore({ playerId: 'p1', matches: 5, wins: 3 })
 
       expect(vi.mocked(hub.broadcast)).toHaveBeenCalledTimes(1)
-      expect(vi.mocked(hub.broadcast)).not.toHaveBeenCalledWith('event-1', 'result_ready', expect.anything())
+      expect(vi.mocked(hub.broadcast)).not.toHaveBeenCalledWith('event-1', 'phase_update', expect.anything())
     })
   })
 })

@@ -76,7 +76,8 @@ export const scoreService = {
     await hub.broadcast(eventId, 'progress_update', { completedCount, totalCount })
 
     if (allCompleted) {
-      await hub.broadcast(eventId, 'result_ready', { eventId })
+      await db.update(events).set({ phase: 'STAR_VOTING' }).where(eq(events.id, eventId))
+      await hub.broadcast(eventId, 'phase_update', { eventId, phase: 'STAR_VOTING' })
     }
 
     return { eventId, completedCount, totalCount, allCompleted }

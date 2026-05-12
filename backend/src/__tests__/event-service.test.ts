@@ -85,7 +85,7 @@ describe('EventService', () => {
   })
 
   describe('advancePhase', () => {
-    it('COLLECTING → REVEALING: DB 更新と hub.broadcast が呼ばれる', async () => {
+    it('COLLECTING → STAR_VOTING: DB 更新と hub.broadcast が呼ばれる', async () => {
       const { db } = await import('../db/client.js')
       const { hub } = await import('../routes/stream.js')
 
@@ -105,9 +105,9 @@ describe('EventService', () => {
 
       const result = await eventService.advancePhase({ eventId })
 
-      expect(result).toEqual({ phase: 'REVEALING' })
+      expect(result).toEqual({ phase: 'STAR_VOTING' })
       expect(vi.mocked(db.update)).toHaveBeenCalledTimes(1)
-      expect(vi.mocked(hub.broadcast)).toHaveBeenCalledWith(eventId, 'phase_update', { eventId, phase: 'REVEALING' })
+      expect(vi.mocked(hub.broadcast)).toHaveBeenCalledWith(eventId, 'phase_update', { eventId, phase: 'STAR_VOTING' })
     })
 
     it('DONE から遷移要求 → INVALID_PHASE_TRANSITION エラーを返す', async () => {
