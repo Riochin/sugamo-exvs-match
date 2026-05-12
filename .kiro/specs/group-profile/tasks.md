@@ -38,8 +38,8 @@
   - 全テストが passing となる
   - _Requirements: 4.1, 4.2, 4.4, 4.5_
 
-- [ ] 3. フロントエンドコア実装（Composables・UIコンポーネント・ルーター）
-- [ ] 3.1 (P) useGroupProfile composable を実装する
+- [x] 3. フロントエンドコア実装（Composables・UIコンポーネント・ルーター）
+- [x] 3.1 (P) useGroupProfile composable を実装する
   - `onMounted` 時に `GET /api/players` を呼び出し、`team` フィールドで `firstTeam`・`secondTeam` に分類する
   - `isLoading` と `error` のリアクティブ状態を管理し、取得失敗時に `error` にメッセージを設定する
   - `isLoading = true` の間は `refresh()` を early return して重複呼び出しを防ぐ
@@ -47,7 +47,7 @@
   - _Requirements: 1.1, 1.5_
   - _Boundary: useGroupProfile_
 
-- [ ] 3.2 (P) usePlayerProfile composable を実装する
+- [x] 3.2 (P) usePlayerProfile composable を実装する
   - `watchEffect` または `onMounted` で `playerId` を監視し、`GET /api/players/:id/profile` を呼び出す
   - 404 レスポンス時に `notFound.value = true` を設定し、`profile.value = null` にする
   - `isLoading`・`error`・`notFound`・`profile` のリアクティブ状態を提供する
@@ -55,7 +55,7 @@
   - _Requirements: 2.1, 2.2, 2.3, 2.6_
   - _Boundary: usePlayerProfile_
 
-- [ ] 3.3 (P) PlayerCard UIコンポーネントを実装する
+- [x] 3.3 (P) PlayerCard UIコンポーネントを実装する
   - `RouterLink` を使用して `/profile/${player.id}` へ遷移するカードリンクを実装する
   - `team === 'FIRST'` は `yellow-400` テキストの「1軍」バッジ、`'SECOND'` は `bg-main` の「2軍」バッジを表示する
   - `title === null` の場合は「未設定」（`text-gray-400`）として表示する
@@ -64,7 +64,7 @@
   - _Requirements: 1.3, 1.4, 2.4, 2.5, 5.2, 5.4_
   - _Boundary: PlayerCard_
 
-- [ ] 3.4 (P) WinRateHistory UIコンポーネントを実装する
+- [x] 3.4 (P) WinRateHistory UIコンポーネントを実装する
   - `absent: true` のエントリに「欠席」テキスト（`text-gray-400`）を表示し、バーを描画しない
   - `absent: false` のエントリに勝率テキスト（例: `68.5%`）と、`winRate` 値を幅とするインラインスタイルでバーを描画する
   - バーの色は `bg-main`（通常）・`bg-accent`（100%時）で表示する
@@ -72,7 +72,7 @@
   - _Requirements: 3.3, 3.5_
   - _Boundary: WinRateHistory_
 
-- [ ] 3.5 (P) ルーターと BottomNav を更新する
+- [x] 3.5 (P) ルーターと BottomNav を更新する
   - フロントエンドルーターの `/profile` ルートを `/profile/:id` に変更する
   - BottomNav のプロフィールタブのリンクを `currentPlayer.value?.playerId` を使用して動的化する
   - `/profile/:id` へ直接アクセスしたとき、ProfileView が `route.params.id` を受け取れる状態になる

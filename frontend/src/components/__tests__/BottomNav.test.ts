@@ -1,12 +1,25 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createRouter, createMemoryHistory } from 'vue-router'
+import { ref } from 'vue'
 import BottomNav from '../BottomNav.vue'
+
+const mockCurrentPlayer = ref<{ playerId: string; name: string; isAdmin: boolean } | null>({
+  playerId: 'p1',
+  name: 'Alice',
+  isAdmin: false,
+})
+
+vi.mock('@/composables/useAuth', () => ({
+  useAuth: () => ({
+    currentPlayer: mockCurrentPlayer,
+  }),
+}))
 
 const routes = [
   { path: '/', component: { template: '<div>Home</div>' } },
   { path: '/group', component: { template: '<div>Group</div>' } },
-  { path: '/profile', component: { template: '<div>Profile</div>' } },
+  { path: '/profile/:id', component: { template: '<div>Profile</div>' } },
 ]
 
 async function mountWithRoute(path: string) {
@@ -43,9 +56,15 @@ describe('BottomNav', () => {
     expect(activeLink.classes()).toContain('active')
   })
 
-  it('/profile にいるとき「プロフィール」がアクティブになる', async () => {
-    const wrapper = await mountWithRoute('/profile')
+  it('/profile/:id にいるとき「プロフィール」がアクティブになる', async () => {
+    const wrapper = await mountWithRoute('/profile/p1')
     const activeLink = wrapper.find('[data-testid="nav-profile"]')
     expect(activeLink.classes()).toContain('active')
+  })
+
+  it('currentPlayer があるときプロフィールリンクが /profile/:id になる', async () => {
+    const wrapper = await mountWithRoute('/')
+    const profileLink = wrapper.find('[data-testid="nav-profile"]')
+    expect(profileLink.attributes('href')).toBe('/profile/p1')
   })
 })

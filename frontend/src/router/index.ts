@@ -20,7 +20,7 @@ export const router = createRouter({
     { path: '/login', component: LoginView, meta: { requiresAuth: false, layout: 'plain' } },
     { path: '/', component: TournamentView, meta: { requiresAuth: true } },
     { path: '/group', component: GroupView, meta: { requiresAuth: true } },
-    { path: '/profile', component: ProfileView, meta: { requiresAuth: true } },
+    { path: '/profile/:id', component: ProfileView, meta: { requiresAuth: true } },
     { path: '/admin', component: AdminView, meta: { requiresAuth: true, requiresAdmin: true } },
   ],
 })

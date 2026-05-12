@@ -15,9 +15,9 @@
       <span class="text-xs mt-1">グループ</span>
     </RouterLink>
     <RouterLink
-      to="/profile"
+      :to="profilePath"
       data-testid="nav-profile"
-      :class="['nav-link', route.path === '/profile' ? 'active' : '']"
+      :class="['nav-link', route.path.startsWith('/profile/') ? 'active' : '']"
     >
       <span class="text-xs mt-1">プロフィール</span>
     </RouterLink>
@@ -25,9 +25,16 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 
 const route = useRoute()
+const { currentPlayer } = useAuth()
+
+const profilePath = computed(() =>
+  currentPlayer.value ? `/profile/${currentPlayer.value.playerId}` : '/profile/',
+)
 </script>
 
 <style scoped>
