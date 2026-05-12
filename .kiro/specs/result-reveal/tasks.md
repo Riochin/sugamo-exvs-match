@@ -1,7 +1,7 @@
 # Implementation Plan
 
-- [ ] 1. Foundation: DBスキーマ変更とマイグレーション
-- [ ] 1.1 eventsテーブルにrevealPhaseカラムを追加してマイグレーションを適用する
+- [x] 1. Foundation: DBスキーマ変更とマイグレーション
+- [x] 1.1 eventsテーブルにrevealPhaseカラムを追加してマイグレーションを適用する
   - events テーブルに `reveal_phase INTEGER NOT NULL DEFAULT 0` カラムを追加する
   - drizzle-kit でマイグレーションファイルを生成し、Turso に適用する
   - 既存レコードには DEFAULT 0 が設定され、既存 API が継続動作することを確認する
@@ -11,7 +11,7 @@
 - [ ] 2. バックエンドサービス：ResultService実装
 - [ ] 2.1 全プレイヤーの順位計算とグループ分類ロジックを実装する
   - result-service.ts を新規作成し、scores テーブルから各プレイヤーの wins/losses/absent を集計する
-  - 勝利数降順、同勝利数の場合は勝率（wins/(wins+losses)、0/0 は 0.0）降順で順位を付与する
+  - 勝率（wins/(wins+losses)、0/0 は 0.0）降順、同勝率の場合は勝利数降順で順位を付与する
   - FIRST/SECOND チームの非欠席人数 F/S を集計し、rank<=F を1軍スロット・rank>F を2軍スロットとして判定する
   - チームとスロットの組み合わせで FIRST_STAY / SECOND_STAY / BORDER（PROMOTION/RELEGATION）に分類する
   - 欠席者は rank=null, group=null, borderDirection=null として返す

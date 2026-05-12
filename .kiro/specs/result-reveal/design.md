@@ -266,8 +266,8 @@ sequenceDiagram
 | 3.3 | 自動再接続（最大3回・指数バックオフ） | useResultReveal | — | Flow 3 |
 | 3.4 | 再接続成功後のフェーズ同期 | useResultReveal | GET /result | Flow 3 |
 | 3.5 | 初期表示時のフェーズ状態同期 | ResultRevealView.onMounted | GET /result | — |
-| 4.1 | 勝利数降順ランキング算出 | ResultService.computeResult | — | — |
-| 4.2 | 勝率二次ソート | ResultService.computeResult | — | — |
+| 4.1 | 勝率降順ランキング算出 | ResultService.computeResult | — | — |
+| 4.2 | 勝利数二次ソート | ResultService.computeResult | — | — |
 | 4.3 | グループ分類 | ResultService.classifyPlayer | — | — |
 | 4.4 | GET /result エンドポイント | resultRoute | GET /result | — |
 | 4.5 | 認証済みのみ返す | authMiddleware | — | — |
@@ -366,7 +366,7 @@ interface ResultService {
 **グループ分類アルゴリズム**
 
 ```
-1. 非欠席プレイヤーを wins DESC, (wins / (wins+losses)) DESC でソートして rank を付与
+1. 非欠席プレイヤーを (wins / (wins+losses)) DESC, wins DESC でソートして rank を付与
 2. F = 非欠席 FIRST チーム人数, S = 非欠席 SECOND チーム人数
 3. rank <= F のプレイヤーが「1軍スロット」、rank > F のプレイヤーが「2軍スロット」
 4. FIRST チーム × 1軍スロット → FIRST_STAY
@@ -600,7 +600,7 @@ revealPhase: integer('reveal_phase').notNull().default(0),
 
 ### Unit Tests（ResultService）
 
-- 勝利数降順・勝率二次ソートによるランキング算出
+- 勝率降順・勝利数二次ソートによるランキング算出
 - FIRST_STAY / SECOND_STAY / BORDER の正確な分類（標準ケース）
 - 欠席者を含む場合の分類（欠席者は group=null）
 - F=0 または S=0 エッジケース

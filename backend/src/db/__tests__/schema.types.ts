@@ -29,6 +29,7 @@ const _event: Event = {
   id: 'event-1',
   heldAt: new Date(),
   phase: 'COLLECTING',
+  revealPhase: 0,
   createdAt: new Date(),
 }
 
@@ -36,6 +37,7 @@ const _event2: Event = {
   id: 'event-2',
   heldAt: new Date(),
   phase: 'REVEALING',
+  revealPhase: 1,
   createdAt: new Date(),
 }
 
@@ -43,6 +45,7 @@ const _event3: Event = {
   id: 'event-3',
   heldAt: new Date(),
   phase: 'DONE',
+  revealPhase: 3,
   createdAt: new Date(),
 }
 
@@ -54,6 +57,7 @@ const _score: Score = {
   wins: 3,
   losses: 1,
   absent: false,
+  submitted: true,
 }
 
 const _scoreAbsent: Score = {
@@ -63,6 +67,7 @@ const _scoreAbsent: Score = {
   wins: 0,
   losses: 0,
   absent: true,
+  submitted: false,
 }
 
 // Star 型の検証

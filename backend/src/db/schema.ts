@@ -15,6 +15,7 @@ export const events = sqliteTable('events', {
   id: text('id').primaryKey(),
   heldAt: integer('held_at', { mode: 'timestamp' }).notNull(),
   phase: text('phase', { enum: ['COLLECTING', 'REVEALING', 'DONE'] }).notNull(),
+  revealPhase: integer('reveal_phase').notNull().default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
 })
 
