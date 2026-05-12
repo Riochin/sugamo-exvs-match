@@ -4,7 +4,7 @@ import { db } from '../db/client.js'
 import { events, players, scores } from '../db/schema.js'
 import { hub } from '../routes/stream.js'
 
-export type EventPhase = 'COLLECTING' | 'REVEALING' | 'DONE'
+export type EventPhase = 'COLLECTING' | 'STAR_VOTING' | 'REVEALING' | 'DONE'
 
 export interface ScoreEntry {
   playerId: string
@@ -35,7 +35,8 @@ export type EventError =
   | { code: 'PHASE_NOT_COLLECTING'; current: EventPhase }
 
 const PHASE_MAP: Partial<Record<EventPhase, EventPhase>> = {
-  COLLECTING: 'REVEALING',
+  COLLECTING: 'STAR_VOTING',
+  STAR_VOTING: 'REVEALING',
   REVEALING: 'DONE',
 }
 
@@ -44,7 +45,13 @@ export const eventService = {
     const activeEvents = await db
       .select({ id: events.id })
       .from(events)
-      .where(or(eq(events.phase, 'COLLECTING'), eq(events.phase, 'REVEALING')))
+      .where(
+        or(
+          eq(events.phase, 'COLLECTING'),
+          eq(events.phase, 'STAR_VOTING'),
+          eq(events.phase, 'REVEALING'),
+        ),
+      )
 
     if (activeEvents.length > 0) {
       return { code: 'ACTIVE_EVENT_EXISTS' }
@@ -91,7 +98,13 @@ export const eventService = {
     const [event] = await db
       .select()
       .from(events)
-      .where(or(eq(events.phase, 'COLLECTING'), eq(events.phase, 'REVEALING')))
+      .where(
+        or(
+          eq(events.phase, 'COLLECTING'),
+          eq(events.phase, 'STAR_VOTING'),
+          eq(events.phase, 'REVEALING'),
+        ),
+      )
 
     if (!event) return null
 

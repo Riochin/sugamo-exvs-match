@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 
-export type SSEEventType = 'progress_update' | 'result_ready' | 'phase_update'
+export type SSEEventType = 'progress_update' | 'result_ready' | 'phase_update' | 'star_vote_update'
 
 type SSEStream = {
   writeSSE: (event: { event: string; data: string }) => Promise<void>
