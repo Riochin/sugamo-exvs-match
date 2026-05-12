@@ -106,6 +106,35 @@ describe('computePlayerResults（純粋関数）', () => {
       }
     })
 
+    it('全2軍が1軍より勝率高い場合、PROMOTION/RELEGATION はそれぞれ最大2名に制限される', () => {
+      // F=3, S=3 で SECOND が全員上位
+      const rows = [
+        { playerId: 'q1', playerName: 'S1', team: 'SECOND' as const, wins: 6, losses: 0, absent: false },
+        { playerId: 'q2', playerName: 'S2', team: 'SECOND' as const, wins: 5, losses: 1, absent: false },
+        { playerId: 'q3', playerName: 'S3', team: 'SECOND' as const, wins: 4, losses: 2, absent: false },
+        { playerId: 'q4', playerName: 'F1', team: 'FIRST' as const, wins: 3, losses: 3, absent: false },
+        { playerId: 'q5', playerName: 'F2', team: 'FIRST' as const, wins: 2, losses: 4, absent: false },
+        { playerId: 'q6', playerName: 'F3', team: 'FIRST' as const, wins: 0, losses: 6, absent: false },
+      ]
+
+      const results = computePlayerResults(rows)
+      const byId = Object.fromEntries(results.map((r) => [r.playerId, r]))
+
+      // SECOND: 上位2名のみ PROMOTION, 3番目は SECOND_STAY
+      expect(byId['q1'].group).toBe('BORDER')
+      expect(byId['q1'].borderDirection).toBe('PROMOTION')
+      expect(byId['q2'].group).toBe('BORDER')
+      expect(byId['q2'].borderDirection).toBe('PROMOTION')
+      expect(byId['q3'].group).toBe('SECOND_STAY')
+
+      // FIRST: 下位2名のみ RELEGATION, 上位1名は FIRST_STAY
+      expect(byId['q4'].group).toBe('FIRST_STAY')
+      expect(byId['q5'].group).toBe('BORDER')
+      expect(byId['q5'].borderDirection).toBe('RELEGATION')
+      expect(byId['q6'].group).toBe('BORDER')
+      expect(byId['q6'].borderDirection).toBe('RELEGATION')
+    })
+
     it('S=0（SECOND チーム全員欠席）のとき出席プレイヤーは全員 group=null になる', () => {
       const rows = [
         { playerId: 'p1', playerName: 'A', team: 'FIRST' as const, wins: 3, losses: 1, absent: false },

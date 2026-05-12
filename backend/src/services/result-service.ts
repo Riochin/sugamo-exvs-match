@@ -38,6 +38,8 @@ type ScoreRow = {
   absent: boolean
 }
 
+const BORDER_LIMIT = 2
+
 export function computePlayerResults(rows: ScoreRow[]): PlayerResult[] {
   const present = rows.filter((p) => !p.absent)
   const absent = rows.filter((p) => p.absent)
@@ -52,24 +54,40 @@ export function computePlayerResults(rows: ScoreRow[]): PlayerResult[] {
     return b.wins - a.wins
   })
 
+  // SECOND players who entered first slots — cap at top BORDER_LIMIT (best rank)
+  const promotionIds = new Set(
+    sorted
+      .map((p, i) => ({ ...p, rank: i + 1 }))
+      .filter((p) => p.team === 'SECOND' && p.rank <= F)
+      .slice(0, BORDER_LIMIT)
+      .map((p) => p.playerId),
+  )
+
+  // FIRST players who fell to second slots — cap at bottom BORDER_LIMIT (worst rank)
+  const firstInSecondSlots = sorted
+    .map((p, i) => ({ ...p, rank: i + 1 }))
+    .filter((p) => p.team === 'FIRST' && p.rank > F)
+  const relegationIds = new Set(
+    firstInSecondSlots.slice(-BORDER_LIMIT).map((p) => p.playerId),
+  )
+
   const presentResults: PlayerResult[] = sorted.map((p, index) => {
     const rank = index + 1
-    const inFirstSlot = rank <= F
 
     let group: PlayerGroup | null = null
     let borderDirection: BorderDirection | null = null
 
     if (F > 0 && S > 0) {
-      if (p.team === 'FIRST' && inFirstSlot) {
-        group = 'FIRST_STAY'
-      } else if (p.team === 'SECOND' && !inFirstSlot) {
-        group = 'SECOND_STAY'
-      } else if (p.team === 'FIRST' && !inFirstSlot) {
-        group = 'BORDER'
-        borderDirection = 'RELEGATION'
-      } else {
+      if (promotionIds.has(p.playerId)) {
         group = 'BORDER'
         borderDirection = 'PROMOTION'
+      } else if (relegationIds.has(p.playerId)) {
+        group = 'BORDER'
+        borderDirection = 'RELEGATION'
+      } else if (p.team === 'FIRST') {
+        group = 'FIRST_STAY'
+      } else {
+        group = 'SECOND_STAY'
       }
     }
 
