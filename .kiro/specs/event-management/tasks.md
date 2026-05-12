@@ -63,7 +63,7 @@
 
 ## タスク 5: `useAdminEvent` composable の実装
 
-- [ ] 5.1 管理者操作の状態と API 呼び出しを管理する composable を実装する
+- [x] 5.1 管理者操作の状態と API 呼び出しを管理する composable を実装する
   - `activeEvent`・`isLoading`・`error` のリアクティブ ref を定義し、外部には `Readonly` で公開する
   - `createEvent(heldAt: Date)`・`setAbsent(playerId, absent)`・`advancePhase()`・`refresh()` を実装し、各操作完了後に `refresh()` を呼んでローカル状態を更新する
   - 初期化時に `refresh()` を呼んで進行中大会を取得する
