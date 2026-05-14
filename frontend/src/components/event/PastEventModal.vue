@@ -1,65 +1,70 @@
 <template>
-  <div
-    v-if="visible"
-    class="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
-    @click.self="emit('close')"
-  >
-    <div class="w-full max-w-md bg-dark border-t border-main rounded-t-2xl max-h-[85vh] overflow-y-auto">
-      <div class="flex justify-center pt-3 pb-1">
-        <div class="w-10 h-1 bg-gray-600 rounded-full"></div>
+  <BottomSheet :visible="visible" @close="emit('close')">
+    <template #header>
+      <div>
+        <h2 class="text-white font-bold">{{ name }}</h2>
+        <p class="text-gray-400 text-xs mt-0.5">{{ formatDate(heldAt) }}</p>
       </div>
+    </template>
 
-      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-700">
-        <h2 class="text-white font-bold">{{ formatDate(heldAt) }}</h2>
-        <button
-          type="button"
-          class="text-gray-400 text-xl font-bold leading-none"
-          @click="emit('close')"
-        >
-          ×
-        </button>
+    <div class="px-4 py-3 border-b border-gray-700 space-y-2 text-sm">
+      <div v-if="venue" class="flex gap-2 text-gray-300">
+        <span class="text-gray-500 shrink-0">会場</span>
+        <span>{{ venue }}</span>
       </div>
-
-      <div v-if="isLoading" class="py-8 text-center text-gray-400">
-        読み込み中...
-      </div>
-
-      <div v-else-if="error" class="py-4 text-center text-red-400 text-sm px-4">
-        {{ error }}
-      </div>
-
-      <ul v-else class="px-4 py-3 space-y-1">
-        <li
-          v-for="p in presentPlayers"
-          :key="p.playerId"
-          class="flex items-center gap-2 py-2 border-b border-gray-700 text-sm"
-        >
-          <span class="w-8 text-center text-yellow-400 font-bold shrink-0">{{ p.rank }}位</span>
-          <span class="flex-1 text-white">{{ p.playerName }}</span>
-          <span class="text-gray-300 shrink-0">{{ p.wins }}勝{{ p.losses }}敗</span>
-          <span class="text-gray-300 w-14 text-right shrink-0">{{ winRate(p.wins, p.losses) }}</span>
-          <span
-            v-if="p.starCount > 0"
-            class="text-yellow-400 font-bold w-10 text-right shrink-0"
-          >★{{ p.starCount }}</span>
-          <span v-else class="w-10 shrink-0"></span>
-        </li>
-        <li
-          v-for="p in absentPlayers"
-          :key="p.playerId"
-          class="flex items-center gap-2 py-2 border-b border-gray-700 text-sm"
-        >
-          <span class="px-2 py-0.5 text-xs bg-gray-700 text-gray-300 rounded shrink-0">欠席</span>
-          <span class="flex-1 text-gray-400">{{ p.playerName }}</span>
-        </li>
-      </ul>
+      <span
+        v-if="hasPromotionRelegation"
+        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand/20 border border-brand text-brand text-xs font-bold"
+      >↑↓ 下剋上あり</span>
+      <span
+        v-else
+        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-800 border border-gray-600 text-gray-400 text-xs"
+      >下剋上なし</span>
+      <p v-if="description" class="text-gray-300 leading-relaxed whitespace-pre-wrap">
+        {{ description }}
+      </p>
     </div>
-  </div>
+
+    <div v-if="isLoading" class="py-8 text-center text-gray-400">
+      読み込み中...
+    </div>
+
+    <div v-else-if="error" class="py-4 text-center text-red-400 text-sm px-4">
+      {{ error }}
+    </div>
+
+    <ul v-else class="px-4 py-3 space-y-1">
+      <li
+        v-for="p in presentPlayers"
+        :key="p.playerId"
+        class="flex items-center gap-2 py-2 border-b border-gray-700 text-sm"
+      >
+        <span class="w-8 text-center text-yellow-400 font-bold shrink-0">{{ p.rank }}位</span>
+        <span class="flex-1 text-white">{{ p.playerName }}</span>
+        <span class="text-gray-300 shrink-0">{{ p.wins }}勝{{ p.losses }}敗</span>
+        <span class="text-gray-300 w-14 text-right shrink-0">{{ winRate(p.wins, p.losses) }}</span>
+        <span
+          v-if="p.starCount > 0"
+          class="text-yellow-400 font-bold w-10 text-right shrink-0"
+        >★{{ p.starCount }}</span>
+        <span v-else class="w-10 shrink-0"></span>
+      </li>
+      <li
+        v-for="p in absentPlayers"
+        :key="p.playerId"
+        class="flex items-center gap-2 py-2 border-b border-gray-700 text-sm"
+      >
+        <span class="px-2 py-0.5 text-xs bg-gray-700 text-gray-300 rounded shrink-0">欠席</span>
+        <span class="flex-1 text-gray-400">{{ p.playerName }}</span>
+      </li>
+    </ul>
+  </BottomSheet>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { client } from '@/api/client'
+import BottomSheet from '@/components/ui/BottomSheet.vue'
 
 interface PlayerResult {
   playerId: string
@@ -81,6 +86,10 @@ const props = defineProps<{
   eventId: string
   heldAt: string
   visible: boolean
+  name: string
+  venue: string | null
+  description: string | null
+  hasPromotionRelegation: boolean
 }>()
 
 const emit = defineEmits<{
