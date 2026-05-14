@@ -13,6 +13,12 @@ export const players = sqliteTable('players', {
 
 export const events = sqliteTable('events', {
   id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  hasPromotionRelegation: integer('has_promotion_relegation', { mode: 'boolean' })
+    .notNull()
+    .default(false),
+  venue: text('venue'),
+  description: text('description'),
   heldAt: integer('held_at', { mode: 'timestamp' }).notNull(),
   phase: text('phase', { enum: ['COLLECTING', 'STAR_VOTING', 'REVEALING', 'DONE'] }).notNull(),
   revealPhase: integer('reveal_phase').notNull().default(0),
