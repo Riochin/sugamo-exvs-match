@@ -43,6 +43,12 @@
         <span class="flex-1 text-white">{{ p.playerName }}</span>
         <span class="text-gray-300 shrink-0">{{ p.wins }}勝{{ p.losses }}敗</span>
         <span class="text-gray-300 w-14 text-right shrink-0">{{ winRate(p.wins, p.losses) }}</span>
+        <button
+          v-if="currentPlayer?.isAdmin"
+          type="button"
+          class="text-gray-500 hover:text-brand text-xs shrink-0"
+          @click="openEdit(p)"
+        >修正</button>
         <span
           v-if="p.starCount > 0"
           class="text-yellow-400 font-bold w-10 text-right shrink-0"
@@ -58,6 +64,17 @@
         <span class="flex-1 text-gray-400">{{ p.playerName }}</span>
       </li>
     </ul>
+
+    <PastEventScoreEditModal
+      :visible="editVisible"
+      :event-id="props.eventId"
+      :player-id="editTarget.playerId"
+      :player-name="editTarget.playerName"
+      :initial-wins="editTarget.wins"
+      :initial-losses="editTarget.losses"
+      @close="editVisible = false"
+      @updated="onScoreUpdated"
+    />
   </BottomSheet>
 </template>
 
@@ -65,6 +82,8 @@
 import { ref, computed, watch } from 'vue'
 import { client } from '@/api/client'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
+import PastEventScoreEditModal from '@/components/event/PastEventScoreEditModal.vue'
+import { useAuth } from '@/composables/useAuth'
 
 interface PlayerResult {
   playerId: string
@@ -96,9 +115,27 @@ const emit = defineEmits<{
   close: []
 }>()
 
+const { currentPlayer } = useAuth()
+
 const players = ref<PlayerRow[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+
+const editVisible = ref(false)
+const editTarget = ref({ playerId: '', playerName: '', wins: 0, losses: 0 })
+
+function openEdit(p: PlayerRow) {
+  editTarget.value = { playerId: p.playerId, playerName: p.playerName, wins: p.wins, losses: p.losses }
+  editVisible.value = true
+}
+
+function onScoreUpdated({ wins, losses }: { wins: number; losses: number }) {
+  const p = players.value.find((pl) => pl.playerId === editTarget.value.playerId)
+  if (p) {
+    p.wins = wins
+    p.losses = losses
+  }
+}
 
 const presentPlayers = computed(() =>
   players.value.filter((p) => !p.absent).sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999)),
