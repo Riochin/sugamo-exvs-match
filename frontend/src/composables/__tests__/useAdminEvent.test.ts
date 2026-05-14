@@ -8,10 +8,16 @@ const mockAdvancePhaseFn = vi.fn()
 
 const mockActiveEvent = {
   id: 'event-1',
+  name: 'テスト大会',
+  hasPromotionRelegation: false,
+  venue: null,
+  description: null,
   phase: 'COLLECTING' as const,
   heldAt: '2026-05-12T00:00:00.000Z',
   scores: [{ playerId: 'p1', playerName: 'Alice', wins: 0, losses: 0, absent: false }],
 }
+
+const validCreateParams = { heldAt: new Date('2026-05-12T00:00:00.000Z'), name: 'テスト大会', hasPromotionRelegation: false }
 
 describe('useAdminEvent', () => {
   beforeEach(() => {
@@ -80,7 +86,7 @@ describe('useAdminEvent', () => {
     await flushPromises()
     expect(activeEvent.value).toBeNull()
 
-    await createEvent(new Date('2026-05-12T00:00:00.000Z'))
+    await createEvent(validCreateParams)
 
     expect(activeEvent.value).toEqual(mockActiveEvent)
   })
@@ -94,7 +100,7 @@ describe('useAdminEvent', () => {
 
     await flushPromises()
 
-    const createPromise = createEvent(new Date('2026-05-12T00:00:00.000Z'))
+    const createPromise = createEvent(validCreateParams)
     expect(isLoading.value).toBe(true)
 
     resolveCreate({ ok: true, json: async () => mockActiveEvent })
@@ -112,8 +118,8 @@ describe('useAdminEvent', () => {
 
     await flushPromises()
 
-    createEvent(new Date())
-    createEvent(new Date())
+    createEvent(validCreateParams)
+    createEvent(validCreateParams)
 
     resolveCreate({ ok: true, json: async () => mockActiveEvent })
     await flushPromises()
@@ -132,7 +138,7 @@ describe('useAdminEvent', () => {
 
     await flushPromises()
 
-    await createEvent(new Date())
+    await createEvent(validCreateParams)
 
     expect(error.value).toBe('ACTIVE_EVENT_EXISTS')
     expect(isLoading.value).toBe(false)

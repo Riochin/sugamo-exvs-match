@@ -27,6 +27,10 @@ const _player2: Player = {
 // Event 型の検証
 const _event: Event = {
   id: 'event-1',
+  name: 'テスト大会',
+  hasPromotionRelegation: false,
+  venue: null,
+  description: null,
   heldAt: new Date(),
   phase: 'COLLECTING',
   revealPhase: 0,
@@ -35,6 +39,10 @@ const _event: Event = {
 
 const _event2: Event = {
   id: 'event-2',
+  name: '第2回',
+  hasPromotionRelegation: true,
+  venue: 'すがもホール',
+  description: '説明文',
   heldAt: new Date(),
   phase: 'REVEALING',
   revealPhase: 1,
@@ -43,6 +51,10 @@ const _event2: Event = {
 
 const _event3: Event = {
   id: 'event-3',
+  name: '第3回',
+  hasPromotionRelegation: false,
+  venue: null,
+  description: null,
   heldAt: new Date(),
   phase: 'DONE',
   revealPhase: 3,
@@ -51,6 +63,10 @@ const _event3: Event = {
 
 const _event4: Event = {
   id: 'event-4',
+  name: '第4回',
+  hasPromotionRelegation: false,
+  venue: null,
+  description: null,
   heldAt: new Date(),
   phase: 'STAR_VOTING',
   revealPhase: 0,

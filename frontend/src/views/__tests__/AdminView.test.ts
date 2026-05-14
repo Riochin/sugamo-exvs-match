@@ -165,13 +165,16 @@ describe('AdminView', () => {
     const wrapper = mount(AdminView, { global: { plugins: [router] } })
     await flushPromises()
 
+    await wrapper.find('[data-testid="name-input"]').setValue('テスト大会')
     await wrapper.find('[data-testid="held-at-input"]').setValue('2026-06-01T10:00')
     await wrapper.find('[data-testid="create-event-form"]').trigger('submit')
     await flushPromises()
 
     expect(mockCreateEvent).toHaveBeenCalledOnce()
-    const calledArg = mockCreateEvent.mock.calls[0][0] as Date
-    expect(calledArg).toBeInstanceOf(Date)
+    const calledArg = mockCreateEvent.mock.calls[0][0] as { heldAt: Date; name: string; hasPromotionRelegation: boolean }
+    expect(calledArg.heldAt).toBeInstanceOf(Date)
+    expect(calledArg.name).toBe('テスト大会')
+    expect(calledArg.hasPromotionRelegation).toBe(false)
   })
 
   it('フェーズ遷移ボタンを押すと advancePhase() を呼ぶ', async () => {

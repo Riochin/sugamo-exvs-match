@@ -42,10 +42,20 @@ describe('POST /api/events', () => {
     vi.clearAllMocks()
   })
 
+  const validBody = {
+    heldAt: '2026-06-01T10:00:00.000Z',
+    name: 'テスト大会',
+    hasPromotionRelegation: false,
+  }
+
   it('管理者トークンで正常な大会作成レスポンスを返す', async () => {
     const { eventService } = await import('../services/event-service.js')
     const mockResult = {
       id: 'event-1',
+      name: 'テスト大会',
+      hasPromotionRelegation: false,
+      venue: null,
+      description: null,
       phase: 'COLLECTING' as EventPhase,
       heldAt: '2026-06-01T10:00:00.000Z',
       scores: [],
@@ -57,13 +67,14 @@ describe('POST /api/events', () => {
     const res = await app.request('/api/events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
-      body: JSON.stringify({ heldAt: '2026-06-01T10:00:00.000Z' }),
+      body: JSON.stringify(validBody),
     })
 
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.id).toBe('event-1')
     expect(body.phase).toBe('COLLECTING')
+    expect(body.name).toBe('テスト大会')
   })
 
   it('非管理者トークンで 403 を返す', async () => {
@@ -72,7 +83,7 @@ describe('POST /api/events', () => {
     const res = await app.request('/api/events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
-      body: JSON.stringify({ heldAt: '2026-06-01T10:00:00.000Z' }),
+      body: JSON.stringify(validBody),
     })
 
     expect(res.status).toBe(403)
@@ -83,7 +94,7 @@ describe('POST /api/events', () => {
     const res = await app.request('/api/events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ heldAt: '2026-06-01T10:00:00.000Z' }),
+      body: JSON.stringify(validBody),
     })
 
     expect(res.status).toBe(401)
@@ -95,7 +106,19 @@ describe('POST /api/events', () => {
     const res = await app.request('/api/events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
-      body: JSON.stringify({ heldAt: 'not-a-date' }),
+      body: JSON.stringify({ ...validBody, heldAt: 'not-a-date' }),
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('name が空で 400 を返す', async () => {
+    const token = await adminToken()
+    const app = buildApp()
+    const res = await app.request('/api/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
+      body: JSON.stringify({ ...validBody, name: '' }),
     })
 
     expect(res.status).toBe(400)
@@ -110,7 +133,7 @@ describe('POST /api/events', () => {
     const res = await app.request('/api/events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
-      body: JSON.stringify({ heldAt: '2026-06-01T10:00:00.000Z' }),
+      body: JSON.stringify(validBody),
     })
 
     expect(res.status).toBe(409)
@@ -142,6 +165,10 @@ describe('GET /api/events/active', () => {
     const { eventService } = await import('../services/event-service.js')
     const mockEvent = {
       id: 'event-1',
+      name: 'テスト大会',
+      hasPromotionRelegation: false,
+      venue: null,
+      description: null,
       phase: 'COLLECTING' as EventPhase,
       heldAt: '2026-06-01T10:00:00.000Z',
       scores: [{ playerId: 'p1', playerName: 'Alice', wins: 0, losses: 0, absent: false }],
@@ -177,8 +204,8 @@ describe('GET /api/events', () => {
   it('DONE 大会一覧を降順で返す', async () => {
     const { eventService } = await import('../services/event-service.js')
     const mockEvents = [
-      { id: 'event-2', phase: 'DONE' as EventPhase, heldAt: '2026-06-02T10:00:00.000Z' },
-      { id: 'event-1', phase: 'DONE' as EventPhase, heldAt: '2026-06-01T10:00:00.000Z' },
+      { id: 'event-2', name: '第2回', hasPromotionRelegation: false, venue: null, description: null, phase: 'DONE' as EventPhase, heldAt: '2026-06-02T10:00:00.000Z' },
+      { id: 'event-1', name: '第1回', hasPromotionRelegation: false, venue: null, description: null, phase: 'DONE' as EventPhase, heldAt: '2026-06-01T10:00:00.000Z' },
     ]
     vi.mocked(eventService.listDoneEvents).mockResolvedValue(mockEvents)
 

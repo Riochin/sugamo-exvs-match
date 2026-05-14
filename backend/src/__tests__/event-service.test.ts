@@ -31,7 +31,7 @@ describe('EventService', () => {
         { id: 'p2', name: 'プレイヤー2', pinHash: 'h2', team: 'SECOND', title: null, mainUnit: null, createdAt: new Date(), isAdmin: false },
       ]
       const heldAt = new Date('2026-06-01T10:00:00.000Z')
-      const newEvent = { id: 'event-1', heldAt, phase: 'COLLECTING', createdAt: new Date() }
+      const newEvent = { id: 'event-1', name: 'テスト大会', hasPromotionRelegation: false, venue: null, description: null, heldAt, phase: 'COLLECTING', createdAt: new Date() }
 
       // 1st select: check active events → []
       vi.mocked(db.select).mockReturnValueOnce({
@@ -54,7 +54,7 @@ describe('EventService', () => {
         values: vi.fn().mockResolvedValue({ rowsAffected: 2 }),
       } as any)
 
-      const result = await eventService.createEvent({ heldAt })
+      const result = await eventService.createEvent({ heldAt, name: 'テスト大会', hasPromotionRelegation: false })
 
       expect('code' in result).toBe(false)
       if (!('code' in result)) {
@@ -77,7 +77,7 @@ describe('EventService', () => {
         }),
       } as any)
 
-      const result = await eventService.createEvent({ heldAt: new Date() })
+      const result = await eventService.createEvent({ heldAt: new Date(), name: 'テスト大会', hasPromotionRelegation: false })
 
       expect(result).toEqual({ code: 'ACTIVE_EVENT_EXISTS' })
       expect(vi.mocked(db.insert)).not.toHaveBeenCalled()
