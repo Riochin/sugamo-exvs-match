@@ -14,16 +14,28 @@ export type EventPhase = 'COLLECTING' | 'STAR_VOTING' | 'REVEALING' | 'DONE'
 
 export interface EventWithScores {
   id: string
+  name: string
+  hasPromotionRelegation: boolean
+  venue: string | null
+  description: string | null
   phase: EventPhase
   heldAt: string
   scores: readonly ScoreEntry[]
+}
+
+export interface CreateEventParams {
+  heldAt: Date
+  name: string
+  hasPromotionRelegation: boolean
+  venue?: string
+  description?: string
 }
 
 export interface UseAdminEventReturn {
   activeEvent: Readonly<Ref<EventWithScores | null>>
   isLoading: Readonly<Ref<boolean>>
   error: Readonly<Ref<string | null>>
-  createEvent(heldAt: Date): Promise<void>
+  createEvent(params: CreateEventParams): Promise<void>
   setAbsent(playerId: string, absent: boolean): Promise<void>
   advancePhase(): Promise<void>
   refresh(): Promise<void>
@@ -46,12 +58,20 @@ export function useAdminEvent(): UseAdminEventReturn {
     }
   }
 
-  async function createEvent(heldAt: Date): Promise<void> {
+  async function createEvent(params: CreateEventParams): Promise<void> {
     if (isLoading.value) return
     isLoading.value = true
     error.value = null
     try {
-      const res = await client.api.events.$post({ json: { heldAt: heldAt.toISOString() } })
+      const res = await client.api.events.$post({
+        json: {
+          heldAt: params.heldAt.toISOString(),
+          name: params.name,
+          hasPromotionRelegation: params.hasPromotionRelegation,
+          ...(params.venue ? { venue: params.venue } : {}),
+          ...(params.description ? { description: params.description } : {}),
+        },
+      })
       if (!res.ok) {
         const data = await res.json()
         error.value = (data as { error: string }).error

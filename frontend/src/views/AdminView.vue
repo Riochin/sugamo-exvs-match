@@ -16,7 +16,18 @@
           @submit.prevent="onCreateEvent"
         >
           <h2 class="mb-4 text-lg font-semibold">大会を作成する</h2>
-          <label class="mb-1 block text-sm">開催日時</label>
+
+          <label class="mb-1 block text-sm">大会名 <span class="text-accent">*</span></label>
+          <input
+            v-model="nameInput"
+            data-testid="name-input"
+            type="text"
+            placeholder="第1回 すがも大会"
+            class="mb-4 w-full rounded border border-main bg-[#090014] px-3 py-2 text-white focus:border-accent focus:outline-none"
+            required
+          />
+
+          <label class="mb-1 block text-sm">開催日時 <span class="text-accent">*</span></label>
           <input
             v-model="heldAtInput"
             data-testid="held-at-input"
@@ -24,6 +35,35 @@
             class="mb-4 w-full rounded border border-main bg-[#090014] px-3 py-2 text-white focus:border-accent focus:outline-none"
             required
           />
+
+          <label class="mb-3 flex items-center gap-2 text-sm">
+            <input
+              v-model="hasPromotionRelegationInput"
+              data-testid="has-promotion-relegation-input"
+              type="checkbox"
+              class="accent-accent"
+            />
+            昇格・降格あり
+          </label>
+
+          <label class="mb-1 block text-sm">開催場所</label>
+          <input
+            v-model="venueInput"
+            data-testid="venue-input"
+            type="text"
+            placeholder="省略可"
+            class="mb-4 w-full rounded border border-main bg-[#090014] px-3 py-2 text-white focus:border-accent focus:outline-none"
+          />
+
+          <label class="mb-1 block text-sm">説明</label>
+          <textarea
+            v-model="descriptionInput"
+            data-testid="description-input"
+            placeholder="省略可"
+            rows="3"
+            class="mb-4 w-full rounded border border-main bg-[#090014] px-3 py-2 text-white focus:border-accent focus:outline-none"
+          />
+
           <button
             data-testid="create-event-submit"
             type="submit"
@@ -109,7 +149,11 @@ const { activeEvent, isLoading, error, createEvent, setAbsent, advancePhase, ref
 const { currentPlayer } = useAuth()
 const { connect, latestPhaseUpdate } = useEventStream()
 
+const nameInput = ref('')
 const heldAtInput = ref('')
+const hasPromotionRelegationInput = ref(false)
+const venueInput = ref('')
+const descriptionInput = ref('')
 
 watch(
   () => activeEvent.value?.id,
@@ -124,8 +168,14 @@ watch(latestPhaseUpdate, (payload) => {
 })
 
 async function onCreateEvent() {
-  if (!heldAtInput.value) return
-  await createEvent(new Date(heldAtInput.value))
+  if (!nameInput.value || !heldAtInput.value) return
+  await createEvent({
+    heldAt: new Date(heldAtInput.value),
+    name: nameInput.value,
+    hasPromotionRelegation: hasPromotionRelegationInput.value,
+    venue: venueInput.value || undefined,
+    description: descriptionInput.value || undefined,
+  })
 }
 
 function onAbsentChange(playerId: string, absent: boolean) {
