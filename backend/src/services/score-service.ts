@@ -17,6 +17,12 @@ export type ScoreError =
   | { code: 'PLAYER_ABSENT' }
   | { code: 'SCORE_NOT_FOUND' }
 
+export type AdminUpdateScoreError =
+  | { code: 'EVENT_NOT_FOUND' }
+  | { code: 'EVENT_NOT_DONE' }
+  | { code: 'SCORE_NOT_FOUND' }
+  | { code: 'PLAYER_ABSENT' }
+
 export const scoreService = {
   async submitScore(params: {
     playerId: string
@@ -81,5 +87,32 @@ export const scoreService = {
     }
 
     return { eventId, completedCount, totalCount, allCompleted }
+  },
+
+  async adminUpdateScore(params: {
+    eventId: string
+    playerId: string
+    wins: number
+    losses: number
+  }): Promise<{ ok: true } | AdminUpdateScoreError> {
+    const { eventId, playerId, wins, losses } = params
+
+    const [event] = await db.select().from(events).where(eq(events.id, eventId))
+    if (!event) return { code: 'EVENT_NOT_FOUND' }
+    if (event.phase !== 'DONE') return { code: 'EVENT_NOT_DONE' }
+
+    const [scoreRecord] = await db
+      .select()
+      .from(scores)
+      .where(and(eq(scores.eventId, eventId), eq(scores.playerId, playerId)))
+    if (!scoreRecord) return { code: 'SCORE_NOT_FOUND' }
+    if (scoreRecord.absent) return { code: 'PLAYER_ABSENT' }
+
+    await db
+      .update(scores)
+      .set({ wins, losses })
+      .where(and(eq(scores.eventId, eventId), eq(scores.playerId, playerId)))
+
+    return { ok: true }
   },
 }
