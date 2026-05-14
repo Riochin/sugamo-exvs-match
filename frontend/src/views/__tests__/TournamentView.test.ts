@@ -5,6 +5,7 @@ import { createRouter, createMemoryHistory } from 'vue-router'
 import TournamentView from '../TournamentView.vue'
 
 const mockGetActiveFn = vi.hoisted(() => vi.fn())
+const mockGetPastFn = vi.hoisted(() => vi.fn())
 const mockConnect = vi.hoisted(() => vi.fn())
 const mockDisconnect = vi.hoisted(() => vi.fn())
 
@@ -13,8 +14,18 @@ vi.mock('@/api/client', () => ({
     api: {
       events: {
         active: { $get: mockGetActiveFn },
+        $get: mockGetPastFn,
       },
     },
+  },
+}))
+
+vi.mock('@/components/event/PastEventModal.vue', () => ({
+  default: {
+    name: 'PastEventModal',
+    props: ['eventId', 'heldAt', 'visible'],
+    emits: ['close'],
+    template: '<div data-testid="past-event-modal" :data-event-id="eventId"></div>',
   },
 }))
 
@@ -64,6 +75,10 @@ describe('TournamentView', () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
       json: async () => ({ event: null }),
+    })
+    mockGetPastFn.mockResolvedValue({
+      ok: true,
+      json: async () => [],
     })
   })
 
@@ -212,5 +227,70 @@ describe('TournamentView', () => {
     await flushPromises()
 
     expect(router.currentRoute.value.path).toBe('/events/event-1/star-voting')
+  })
+
+  it('マウント時に past events API も呼ばれる', async () => {
+    const router = createTestRouter()
+    mount(TournamentView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(mockGetPastFn).toHaveBeenCalledOnce()
+  })
+
+  it('開催済みイベントがある場合にリストが表示される', async () => {
+    mockGetPastFn.mockResolvedValue({
+      ok: true,
+      json: async () => [
+        { id: 'past-1', phase: 'DONE', heldAt: '2026-04-01T12:00:00.000Z' },
+        { id: 'past-2', phase: 'DONE', heldAt: '2026-03-01T12:00:00.000Z' },
+      ],
+    })
+
+    const router = createTestRouter()
+    const wrapper = mount(TournamentView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('2026/04/01')
+    expect(wrapper.text()).toContain('2026/03/01')
+  })
+
+  it('開催済みイベントが 0 件のときはセクションが表示されない', async () => {
+    const router = createTestRouter()
+    const wrapper = mount(TournamentView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('開催済みの大会')
+  })
+
+  it('開催済みイベントをクリックすると PastEventModal が表示される', async () => {
+    mockGetPastFn.mockResolvedValue({
+      ok: true,
+      json: async () => [{ id: 'past-1', phase: 'DONE', heldAt: '2026-04-01T12:00:00.000Z' }],
+    })
+
+    const router = createTestRouter()
+    const wrapper = mount(TournamentView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="past-event-modal"]').exists()).toBe(false)
+    await wrapper.find('li').trigger('click')
+    expect(wrapper.find('[data-testid="past-event-modal"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="past-event-modal"]').attributes('data-event-id')).toBe('past-1')
+  })
+
+  it('past events API エラーがあってもアクティブイベント表示に影響しない', async () => {
+    mockGetPastFn.mockRejectedValue(new Error('network error'))
+    mockGetActiveFn.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        event: { id: 'event-1', phase: 'COLLECTING', heldAt: '2026-05-12T00:00:00.000Z', scores: [] },
+      }),
+    })
+
+    const router = createTestRouter()
+    const wrapper = mount(TournamentView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="score-entry-panel"]').exists()).toBe(true)
   })
 })
