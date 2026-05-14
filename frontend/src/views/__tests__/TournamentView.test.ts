@@ -23,9 +23,27 @@ vi.mock('@/api/client', () => ({
 vi.mock('@/components/event/PastEventModal.vue', () => ({
   default: {
     name: 'PastEventModal',
-    props: ['eventId', 'heldAt', 'visible'],
+    props: ['eventId', 'heldAt', 'visible', 'name', 'venue', 'description', 'hasPromotionRelegation'],
     emits: ['close'],
     template: '<div data-testid="past-event-modal" :data-event-id="eventId"></div>',
+  },
+}))
+
+vi.mock('@/components/event/ActiveEventCard.vue', () => ({
+  default: {
+    name: 'ActiveEventCard',
+    props: ['event'],
+    emits: ['openScoreModal'],
+    template: '<div data-testid="active-event-card" :data-event-id="event.id"><button data-testid="open-score-modal-btn" @click="$emit(\'openScoreModal\')">入力</button></div>',
+  },
+}))
+
+vi.mock('@/components/score/ScoreEntryModal.vue', () => ({
+  default: {
+    name: 'ScoreEntryModal',
+    props: ['eventId', 'visible', 'progressUpdate'],
+    emits: ['close'],
+    template: '<div v-if="visible" data-testid="score-entry-modal" :data-event-id="eventId"></div>',
   },
 }))
 
@@ -46,13 +64,16 @@ vi.mock('@/composables/useEventStream', () => ({
   }),
 }))
 
-vi.mock('@/components/score/ScoreEntryPanel.vue', () => ({
-  default: {
-    name: 'ScoreEntryPanel',
-    props: ['eventId', 'progressUpdate'],
-    template: '<div data-testid="score-entry-panel" :data-event-id="eventId"></div>',
-  },
-}))
+const baseEvent = {
+  id: 'event-1',
+  phase: 'COLLECTING' as const,
+  heldAt: '2026-05-12T00:00:00.000Z',
+  scores: [],
+  name: 'テスト大会',
+  hasPromotionRelegation: false,
+  venue: null,
+  description: null,
+}
 
 function createTestRouter() {
   return createRouter({
@@ -96,15 +117,13 @@ describe('TournamentView', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-testid="no-event-message"]').exists()).toBe(true)
-    expect(wrapper.find('[data-testid="score-entry-panel"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="active-event-card"]').exists()).toBe(false)
   })
 
   it('アクティブイベントがある場合に useEventStream.connect が呼ばれる', async () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
-      json: async () => ({
-        event: { id: 'event-1', phase: 'COLLECTING', heldAt: '2026-05-12T00:00:00.000Z', scores: [] },
-      }),
+      json: async () => ({ event: baseEvent }),
     })
 
     const router = createTestRouter()
@@ -114,42 +133,53 @@ describe('TournamentView', () => {
     expect(mockConnect).toHaveBeenCalledWith('event-1')
   })
 
-  it('フェーズが COLLECTING のとき ScoreEntryPanel を表示する', async () => {
+  it('フェーズが COLLECTING のとき ActiveEventCard を表示する', async () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
-      json: async () => ({
-        event: { id: 'event-1', phase: 'COLLECTING', heldAt: '2026-05-12T00:00:00.000Z', scores: [] },
-      }),
+      json: async () => ({ event: baseEvent }),
     })
 
     const router = createTestRouter()
     const wrapper = mount(TournamentView, { global: { plugins: [router] } })
     await flushPromises()
 
-    expect(wrapper.find('[data-testid="score-entry-panel"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="active-event-card"]').exists()).toBe(true)
   })
 
-  it('ScoreEntryPanel に eventId が渡される', async () => {
+  it('ActiveEventCard に event.id が渡される', async () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
-      json: async () => ({
-        event: { id: 'event-1', phase: 'COLLECTING', heldAt: '2026-05-12T00:00:00.000Z', scores: [] },
-      }),
+      json: async () => ({ event: baseEvent }),
     })
 
     const router = createTestRouter()
     const wrapper = mount(TournamentView, { global: { plugins: [router] } })
     await flushPromises()
 
-    const panel = wrapper.find('[data-testid="score-entry-panel"]')
-    expect(panel.attributes('data-event-id')).toBe('event-1')
+    const card = wrapper.find('[data-testid="active-event-card"]')
+    expect(card.attributes('data-event-id')).toBe('event-1')
   })
 
-  it('SSE phase_update で COLLECTING に変化すると ScoreEntryPanel が表示される', async () => {
+  it('open-score-modal-btn クリックで ScoreEntryModal が表示される', async () => {
+    mockGetActiveFn.mockResolvedValue({
+      ok: true,
+      json: async () => ({ event: baseEvent }),
+    })
+
+    const router = createTestRouter()
+    const wrapper = mount(TournamentView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="score-entry-modal"]').exists()).toBe(false)
+    await wrapper.find('[data-testid="open-score-modal-btn"]').trigger('click')
+    expect(wrapper.find('[data-testid="score-entry-modal"]').exists()).toBe(true)
+  })
+
+  it('アクティブイベントがある場合は常に ActiveEventCard を表示する', async () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
       json: async () => ({
-        event: { id: 'event-1', phase: 'REVEALING', heldAt: '2026-05-12T00:00:00.000Z', scores: [] },
+        event: { ...baseEvent, phase: 'REVEALING' as const },
       }),
     })
 
@@ -157,20 +187,32 @@ describe('TournamentView', () => {
     const wrapper = mount(TournamentView, { global: { plugins: [router] } })
     await flushPromises()
 
-    expect(wrapper.find('[data-testid="score-entry-panel"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="active-event-card"]').exists()).toBe(true)
+  })
 
-    mockCurrentPhase.value = 'COLLECTING'
+  it('SSE phase_update で COLLECTING 以外に変化すると isScoreModalOpen が false になる', async () => {
+    mockGetActiveFn.mockResolvedValue({
+      ok: true,
+      json: async () => ({ event: baseEvent }),
+    })
+
+    const router = createTestRouter()
+    const wrapper = mount(TournamentView, { global: { plugins: [router] } })
     await flushPromises()
 
-    expect(wrapper.find('[data-testid="score-entry-panel"]').exists()).toBe(true)
+    await wrapper.find('[data-testid="open-score-modal-btn"]').trigger('click')
+    expect(wrapper.find('[data-testid="score-entry-modal"]').exists()).toBe(true)
+
+    mockCurrentPhase.value = 'STAR_VOTING'
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="score-entry-modal"]').exists()).toBe(false)
   })
 
   it('result_ready 受信後に router.replace で結果発表ページへ遷移する', async () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
-      json: async () => ({
-        event: { id: 'event-1', phase: 'COLLECTING', heldAt: '2026-05-12T00:00:00.000Z', scores: [] },
-      }),
+      json: async () => ({ event: baseEvent }),
     })
 
     const router = createTestRouter()
@@ -197,9 +239,7 @@ describe('TournamentView', () => {
   it('SSE phase_update で STAR_VOTING を受信すると /events/:id/star-voting へ遷移する', async () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
-      json: async () => ({
-        event: { id: 'event-1', phase: 'COLLECTING', heldAt: '2026-05-12T00:00:00.000Z', scores: [] },
-      }),
+      json: async () => ({ event: baseEvent }),
     })
 
     const router = createTestRouter()
@@ -217,7 +257,7 @@ describe('TournamentView', () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
       json: async () => ({
-        event: { id: 'event-1', phase: 'STAR_VOTING', heldAt: '2026-05-12T00:00:00.000Z', scores: [] },
+        event: { ...baseEvent, phase: 'STAR_VOTING' as const },
       }),
     })
 
@@ -241,8 +281,8 @@ describe('TournamentView', () => {
     mockGetPastFn.mockResolvedValue({
       ok: true,
       json: async () => [
-        { id: 'past-1', phase: 'DONE', heldAt: '2026-04-01T12:00:00.000Z' },
-        { id: 'past-2', phase: 'DONE', heldAt: '2026-03-01T12:00:00.000Z' },
+        { id: 'past-1', phase: 'DONE', heldAt: '2026-04-01T12:00:00.000Z', name: '第1回大会', hasPromotionRelegation: false, venue: null, description: null },
+        { id: 'past-2', phase: 'DONE', heldAt: '2026-03-01T12:00:00.000Z', name: '第2回大会', hasPromotionRelegation: false, venue: null, description: null },
       ],
     })
 
@@ -250,6 +290,8 @@ describe('TournamentView', () => {
     const wrapper = mount(TournamentView, { global: { plugins: [router] } })
     await flushPromises()
 
+    expect(wrapper.text()).toContain('第1回大会')
+    expect(wrapper.text()).toContain('第2回大会')
     expect(wrapper.text()).toContain('2026/04/01')
     expect(wrapper.text()).toContain('2026/03/01')
   })
@@ -265,7 +307,7 @@ describe('TournamentView', () => {
   it('開催済みイベントをクリックすると PastEventModal が表示される', async () => {
     mockGetPastFn.mockResolvedValue({
       ok: true,
-      json: async () => [{ id: 'past-1', phase: 'DONE', heldAt: '2026-04-01T12:00:00.000Z' }],
+      json: async () => [{ id: 'past-1', phase: 'DONE', heldAt: '2026-04-01T12:00:00.000Z', name: '第1回大会', hasPromotionRelegation: false, venue: null, description: null }],
     })
 
     const router = createTestRouter()
@@ -282,15 +324,13 @@ describe('TournamentView', () => {
     mockGetPastFn.mockRejectedValue(new Error('network error'))
     mockGetActiveFn.mockResolvedValue({
       ok: true,
-      json: async () => ({
-        event: { id: 'event-1', phase: 'COLLECTING', heldAt: '2026-05-12T00:00:00.000Z', scores: [] },
-      }),
+      json: async () => ({ event: baseEvent }),
     })
 
     const router = createTestRouter()
     const wrapper = mount(TournamentView, { global: { plugins: [router] } })
     await flushPromises()
 
-    expect(wrapper.find('[data-testid="score-entry-panel"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="active-event-card"]').exists()).toBe(true)
   })
 })

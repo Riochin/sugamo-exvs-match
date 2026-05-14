@@ -6,14 +6,7 @@
     </div>
 
     <template v-else>
-      <ScoreEntryPanel
-        v-if="phase === 'COLLECTING'"
-        :event-id="activeEvent.id"
-        :progress-update="progressUpdate"
-      />
-      <div v-else class="text-center py-8 text-gray-400">
-        <p class="text-base">現在スコアを受け付けていません</p>
-      </div>
+      <ActiveEventCard :event="activeEvent" @open-score-modal="isScoreModalOpen = true" />
     </template>
 
     <section v-if="pastEvents.length > 0" class="mt-6">
@@ -27,7 +20,10 @@
           class="flex items-center justify-between p-3 bg-dark border border-main rounded-lg cursor-pointer active:opacity-60"
           @click="selectedEvent = event"
         >
-          <span class="text-white">{{ formatDate(event.heldAt) }}</span>
+          <div class="flex flex-col gap-0.5">
+            <span class="text-white font-medium text-sm">{{ event.name }}</span>
+            <span class="text-gray-400 text-xs">{{ formatDate(event.heldAt) }}</span>
+          </div>
           <span class="text-gray-400 text-sm">›</span>
         </li>
       </ul>
@@ -37,8 +33,20 @@
       v-if="selectedEvent"
       :event-id="selectedEvent.id"
       :held-at="selectedEvent.heldAt"
+      :name="selectedEvent.name"
+      :venue="selectedEvent.venue"
+      :description="selectedEvent.description"
+      :has-promotion-relegation="selectedEvent.hasPromotionRelegation"
       :visible="true"
       @close="selectedEvent = null"
+    />
+
+    <ScoreEntryModal
+      v-if="activeEvent && phase === 'COLLECTING'"
+      :event-id="activeEvent.id"
+      :visible="isScoreModalOpen"
+      :progress-update="progressUpdate"
+      @close="isScoreModalOpen = false"
     />
   </div>
 </template>
@@ -48,13 +56,18 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { client } from '@/api/client'
 import { useEventStream } from '@/composables/useEventStream'
-import ScoreEntryPanel from '@/components/score/ScoreEntryPanel.vue'
+import ActiveEventCard from '@/components/event/ActiveEventCard.vue'
 import PastEventModal from '@/components/event/PastEventModal.vue'
+import ScoreEntryModal from '@/components/score/ScoreEntryModal.vue'
 
 interface ActiveEvent {
   id: string
   phase: 'COLLECTING' | 'STAR_VOTING' | 'REVEALING' | 'DONE'
   heldAt: string
+  name: string
+  hasPromotionRelegation: boolean
+  venue: string | null
+  description: string | null
   scores: unknown[]
 }
 
@@ -62,6 +75,10 @@ interface EventSummary {
   id: string
   phase: 'COLLECTING' | 'STAR_VOTING' | 'REVEALING' | 'DONE'
   heldAt: string
+  name: string
+  hasPromotionRelegation: boolean
+  venue: string | null
+  description: string | null
 }
 
 const router = useRouter()
@@ -71,6 +88,7 @@ const activeEvent = ref<ActiveEvent | null>(null)
 const initialPhase = ref<'COLLECTING' | 'STAR_VOTING' | 'REVEALING' | 'DONE' | null>(null)
 const pastEvents = ref<EventSummary[]>([])
 const selectedEvent = ref<EventSummary | null>(null)
+const isScoreModalOpen = ref(false)
 
 const phase = computed(() => currentPhase.value ?? initialPhase.value)
 
@@ -80,11 +98,14 @@ watch(resultReady, (ready) => {
   }
 })
 
-watch(currentPhase, (phase) => {
-  if (phase === 'STAR_VOTING' && activeEvent.value) {
+watch(currentPhase, (newPhase) => {
+  if (newPhase !== 'COLLECTING') {
+    isScoreModalOpen.value = false
+  }
+  if (newPhase === 'STAR_VOTING' && activeEvent.value) {
     router.replace(`/events/${activeEvent.value.id}/star-voting`)
   }
-  if (phase === 'REVEALING' && activeEvent.value) {
+  if (newPhase === 'REVEALING' && activeEvent.value) {
     router.replace(`/events/${activeEvent.value.id}/result`)
   }
 })
