@@ -14,6 +14,13 @@ vi.mock('../services/event-service.js', () => ({
   },
 }))
 
+vi.mock('../services/score-service.js', () => ({
+  scoreService: {
+    submitScore: vi.fn(),
+    adminUpdateScore: vi.fn(),
+  },
+}))
+
 vi.mock('../routes/stream.js', () => ({
   hub: {
     broadcast: vi.fn().mockResolvedValue(undefined),
@@ -355,5 +362,98 @@ describe('PATCH /api/events/:id/phase', () => {
     })
 
     expect(res.status).toBe(403)
+  })
+})
+
+describe('PATCH /api/events/:id/scores/:playerId', () => {
+  beforeEach(() => {
+    process.env.JWT_SECRET = 'test-secret-key'
+    vi.clearAllMocks()
+  })
+
+  it('管理者が過去大会のスコアを更新すると { ok: true } を返す', async () => {
+    const { scoreService } = await import('../services/score-service.js')
+    vi.mocked(scoreService.adminUpdateScore).mockResolvedValue({ ok: true })
+
+    const token = await adminToken()
+    const app = buildApp()
+    const res = await app.request('/api/events/event-1/scores/player-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
+      body: JSON.stringify({ wins: 3, losses: 2 }),
+    })
+
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body).toEqual({ ok: true })
+  })
+
+  it('大会が DONE でない場合 409 を返す', async () => {
+    const { scoreService } = await import('../services/score-service.js')
+    vi.mocked(scoreService.adminUpdateScore).mockResolvedValue({ code: 'EVENT_NOT_DONE' })
+
+    const token = await adminToken()
+    const app = buildApp()
+    const res = await app.request('/api/events/event-1/scores/player-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
+      body: JSON.stringify({ wins: 3, losses: 2 }),
+    })
+
+    expect(res.status).toBe(409)
+  })
+
+  it('大会が存在しない場合 404 を返す', async () => {
+    const { scoreService } = await import('../services/score-service.js')
+    vi.mocked(scoreService.adminUpdateScore).mockResolvedValue({ code: 'EVENT_NOT_FOUND' })
+
+    const token = await adminToken()
+    const app = buildApp()
+    const res = await app.request('/api/events/event-1/scores/player-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
+      body: JSON.stringify({ wins: 3, losses: 2 }),
+    })
+
+    expect(res.status).toBe(404)
+  })
+
+  it('プレイヤーが欠席の場合 409 を返す', async () => {
+    const { scoreService } = await import('../services/score-service.js')
+    vi.mocked(scoreService.adminUpdateScore).mockResolvedValue({ code: 'PLAYER_ABSENT' })
+
+    const token = await adminToken()
+    const app = buildApp()
+    const res = await app.request('/api/events/event-1/scores/player-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
+      body: JSON.stringify({ wins: 3, losses: 2 }),
+    })
+
+    expect(res.status).toBe(409)
+  })
+
+  it('非管理者で 403 を返す', async () => {
+    const token = await playerToken()
+    const app = buildApp()
+    const res = await app.request('/api/events/event-1/scores/player-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
+      body: JSON.stringify({ wins: 3, losses: 2 }),
+    })
+
+    expect(res.status).toBe(403)
+  })
+
+  it('wins が負の値で 400 を返す', async () => {
+    const token = await adminToken()
+    const app = buildApp()
+    const res = await app.request('/api/events/event-1/scores/player-1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
+      body: JSON.stringify({ wins: -1, losses: 2 }),
+    })
+
+    expect(res.status).toBe(400)
   })
 })
