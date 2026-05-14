@@ -16,6 +16,10 @@ export interface ScoreEntry {
 
 export interface EventWithScores {
   id: string
+  name: string
+  hasPromotionRelegation: boolean
+  venue: string | null
+  description: string | null
   phase: EventPhase
   heldAt: string
   scores: ScoreEntry[]
@@ -23,6 +27,10 @@ export interface EventWithScores {
 
 export interface EventSummary {
   id: string
+  name: string
+  hasPromotionRelegation: boolean
+  venue: string | null
+  description: string | null
   phase: EventPhase
   heldAt: string
 }
@@ -41,7 +49,13 @@ const PHASE_MAP: Partial<Record<EventPhase, EventPhase>> = {
 }
 
 export const eventService = {
-  async createEvent(params: { heldAt: Date }): Promise<EventWithScores | EventError> {
+  async createEvent(params: {
+    heldAt: Date
+    name: string
+    hasPromotionRelegation: boolean
+    venue?: string
+    description?: string
+  }): Promise<EventWithScores | EventError> {
     const activeEvents = await db
       .select({ id: events.id })
       .from(events)
@@ -64,7 +78,16 @@ export const eventService = {
 
     const [newEvent] = await db
       .insert(events)
-      .values({ id: eventId, heldAt: params.heldAt, phase: 'COLLECTING', createdAt: now })
+      .values({
+        id: eventId,
+        name: params.name,
+        hasPromotionRelegation: params.hasPromotionRelegation,
+        venue: params.venue ?? null,
+        description: params.description ?? null,
+        heldAt: params.heldAt,
+        phase: 'COLLECTING',
+        createdAt: now,
+      })
       .returning()
 
     if (allPlayers.length > 0) {
@@ -82,6 +105,10 @@ export const eventService = {
 
     return {
       id: newEvent.id,
+      name: newEvent.name,
+      hasPromotionRelegation: newEvent.hasPromotionRelegation,
+      venue: newEvent.venue,
+      description: newEvent.description,
       phase: newEvent.phase as EventPhase,
       heldAt: newEvent.heldAt.toISOString(),
       scores: allPlayers.map((player) => ({
@@ -122,6 +149,10 @@ export const eventService = {
 
     return {
       id: event.id,
+      name: event.name,
+      hasPromotionRelegation: event.hasPromotionRelegation,
+      venue: event.venue,
+      description: event.description,
       phase: event.phase as EventPhase,
       heldAt: event.heldAt.toISOString(),
       scores: eventScores,
@@ -130,7 +161,15 @@ export const eventService = {
 
   async listDoneEvents(): Promise<EventSummary[]> {
     const doneEvents = await db
-      .select({ id: events.id, phase: events.phase, heldAt: events.heldAt })
+      .select({
+        id: events.id,
+        name: events.name,
+        hasPromotionRelegation: events.hasPromotionRelegation,
+        venue: events.venue,
+        description: events.description,
+        phase: events.phase,
+        heldAt: events.heldAt,
+      })
       .from(events)
       .where(eq(events.phase, 'DONE'))
 
@@ -138,6 +177,10 @@ export const eventService = {
       .sort((a, b) => b.heldAt.getTime() - a.heldAt.getTime())
       .map((e) => ({
         id: e.id,
+        name: e.name,
+        hasPromotionRelegation: e.hasPromotionRelegation,
+        venue: e.venue,
+        description: e.description,
         phase: e.phase as EventPhase,
         heldAt: e.heldAt.toISOString(),
       }))

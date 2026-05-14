@@ -156,6 +156,31 @@ export const resultService = {
       .set({ revealPhase: newRevealPhase, phase: newPhase })
       .where(eq(events.id, eventId))
 
+    if (newRevealPhase === 3 && event.hasPromotionRelegation) {
+      const scoreRows = await db
+        .select({
+          playerId: players.id,
+          playerName: players.name,
+          team: players.team,
+          wins: scores.wins,
+          losses: scores.losses,
+          absent: scores.absent,
+        })
+        .from(scores)
+        .innerJoin(players, eq(scores.playerId, players.id))
+        .where(eq(scores.eventId, eventId))
+
+      const results = computePlayerResults(scoreRows as ScoreRow[])
+
+      for (const p of results) {
+        if (p.borderDirection === 'PROMOTION') {
+          await db.update(players).set({ team: 'FIRST' }).where(eq(players.id, p.playerId))
+        } else if (p.borderDirection === 'RELEGATION') {
+          await db.update(players).set({ team: 'SECOND' }).where(eq(players.id, p.playerId))
+        }
+      }
+    }
+
     return { revealPhase: newRevealPhase, eventPhase: newPhase }
   },
 }

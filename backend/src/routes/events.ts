@@ -7,6 +7,10 @@ import { eventService } from '../services/event-service.js'
 
 const createEventSchema = z.object({
   heldAt: z.string().datetime(),
+  name: z.string().min(1),
+  hasPromotionRelegation: z.boolean(),
+  venue: z.string().optional(),
+  description: z.string().optional(),
 })
 
 const setAbsentSchema = z.object({
@@ -21,8 +25,14 @@ function errorToStatus(code: string): 400 | 404 | 409 {
 export const eventsRoute = new Hono()
   .use('/*', authMiddleware)
   .post('/', adminMiddleware, zValidator('json', createEventSchema), async (c) => {
-    const { heldAt } = c.req.valid('json')
-    const result = await eventService.createEvent({ heldAt: new Date(heldAt) })
+    const { heldAt, name, hasPromotionRelegation, venue, description } = c.req.valid('json')
+    const result = await eventService.createEvent({
+      heldAt: new Date(heldAt),
+      name,
+      hasPromotionRelegation,
+      venue,
+      description,
+    })
     if ('code' in result) {
       return c.json({ error: result.code }, errorToStatus(result.code))
     }
