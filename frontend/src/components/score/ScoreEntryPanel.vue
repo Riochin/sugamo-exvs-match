@@ -67,18 +67,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref as vueRef } from 'vue'
 import { useScoreEntry } from '@/composables/useScoreEntry'
 import SubmissionProgressBar from './SubmissionProgressBar.vue'
 import type { ProgressUpdatePayload } from '@/composables/useEventStream'
 
-const props = defineProps<{
+defineProps<{
   eventId: string
   progressUpdate: ProgressUpdatePayload | null
 }>()
 
-const eventIdRef = vueRef(props.eventId)
-
 const { matches, wins, isValid, isSubmitting, submitted, isAbsent, error, submitScore } =
-  useScoreEntry(eventIdRef)
+  useScoreEntry()
 </script>

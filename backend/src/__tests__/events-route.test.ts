@@ -178,7 +178,7 @@ describe('GET /api/events/active', () => {
       description: null,
       phase: 'COLLECTING' as EventPhase,
       heldAt: '2026-06-01T10:00:00.000Z',
-      scores: [{ playerId: 'p1', playerName: 'Alice', wins: 0, losses: 0, absent: false }],
+      scores: [{ playerId: 'p1', playerName: 'Alice', wins: 0, losses: 0, absent: false, submitted: false }],
     }
     vi.mocked(eventService.getActiveEvent).mockResolvedValue(mockEvent)
 

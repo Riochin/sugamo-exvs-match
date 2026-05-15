@@ -12,6 +12,7 @@ export interface ScoreEntry {
   wins: number
   losses: number
   absent: boolean
+  submitted: boolean
 }
 
 export interface EventWithScores {
@@ -117,6 +118,7 @@ export const eventService = {
         wins: 0,
         losses: 0,
         absent: false,
+        submitted: false,
       })),
     }
   },
@@ -142,6 +144,7 @@ export const eventService = {
         wins: scores.wins,
         losses: scores.losses,
         absent: scores.absent,
+        submitted: scores.submitted,
       })
       .from(scores)
       .innerJoin(players, eq(scores.playerId, players.id))

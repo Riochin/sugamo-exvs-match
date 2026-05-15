@@ -14,7 +14,7 @@ export interface UseScoreEntryReturn {
   submitScore(): Promise<void>
 }
 
-export function useScoreEntry(_eventId: Ref<string>): UseScoreEntryReturn {
+export function useScoreEntry(): UseScoreEntryReturn {
   const { currentPlayer } = useAuth()
 
   const matches = ref<number | null>(null)
@@ -37,10 +37,13 @@ export function useScoreEntry(_eventId: Ref<string>): UseScoreEntryReturn {
       const res = await client.api.events.active.$get()
       if (!res.ok) return
       const data = await res.json()
-      const event = (data as { event: { scores: { playerId: string; absent: boolean }[] } | null }).event
+      const event = (data as { event: { scores: { playerId: string; absent: boolean; submitted: boolean }[] } | null }).event
       if (!event || !currentPlayer.value) return
       const scoreRecord = event.scores.find((s) => s.playerId === currentPlayer.value!.playerId)
       isAbsent.value = scoreRecord?.absent ?? false
+      if (scoreRecord?.submitted) {
+        submitted.value = true
+      }
     } catch {
       // isAbsent のデフォルトは false のまま
     }
