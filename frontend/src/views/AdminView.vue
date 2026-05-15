@@ -143,13 +143,19 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAdminEvent } from '@/composables/useAdminEvent'
 import { useAuth } from '@/composables/useAuth'
 import { useEventStream } from '@/composables/useEventStream'
 
+const router = useRouter()
 const { activeEvent, isLoading, error, createEvent, setAbsent, advancePhase, refresh } = useAdminEvent()
 const { currentPlayer } = useAuth()
 const { connect, latestPhaseUpdate } = useEventStream()
+
+watch(currentPlayer, (player) => {
+  if (!player?.isAdmin) router.push('/')
+})
 
 const nameInput = ref('')
 const heldAtInput = ref('')

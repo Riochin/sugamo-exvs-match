@@ -8,6 +8,7 @@ import { scoresRoute } from './routes/scores.js'
 import { starsRoute } from './routes/stars.js'
 import { streamRoute } from './routes/stream.js'
 import { resultRoute } from './routes/result.js'
+import { devRoute } from './routes/dev.js'
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
@@ -30,6 +31,7 @@ const app = new Hono()
   .route('/api/scores', scoresRoute)
   .route('/api/stars', starsRoute)
   .route('/api/stream', streamRoute)
+  .route('/api/dev', devRoute)
 
 app.get('/', (c) => c.text('sugamo-exvs-match API'))
 

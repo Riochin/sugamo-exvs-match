@@ -3,11 +3,14 @@
     <RouterView />
   </AppLayout>
   <RouterView v-else />
+  <DevImpersonatePanel v-if="isDev" />
 </template>
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 import AppLayout from '@/components/AppLayout.vue'
+import DevImpersonatePanel from '@/components/dev/DevImpersonatePanel.vue'
 
 const route = useRoute()
+const isDev = import.meta.env.DEV
 </script>
