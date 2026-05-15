@@ -138,6 +138,7 @@ export const starService = {
       .from(scores)
       .innerJoin(players, eq(scores.playerId, players.id))
       .where(and(eq(scores.eventId, eventId), eq(scores.absent, false), ne(scores.playerId, playerId)))
+      .orderBy(desc(players.createdAt))
 
     const [completedResult] = await db
       .select({ count: count() })
