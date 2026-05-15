@@ -1,5 +1,17 @@
 <template>
-  <div class="relative p-4 bg-dark border border-main rounded-lg text-white">
+  <div class="relative p-4 bg-dark border border-main rounded-lg text-white overflow-hidden">
+    <span
+      v-if="player.borderDirection === 'PROMOTION'"
+      data-testid="indicator-promotion"
+      class="gekokujo-stamp"
+      aria-hidden="true"
+    >下剋上！</span>
+    <span
+      v-else-if="player.borderDirection === 'RELEGATION'"
+      data-testid="indicator-relegation"
+      class="youchien-stamp"
+      aria-hidden="true"
+    >幼稚園行き</span>
     <div class="flex items-center gap-3">
       <!-- 順位: 左側に大きく -->
       <div class="w-14 flex-shrink-0 text-center">
@@ -15,18 +27,6 @@
       <div class="flex-1 min-w-0">
         <div class="flex items-center justify-between mb-1">
           <span class="font-bold text-base truncate">{{ player.playerName }}</span>
-          <div class="flex items-center gap-1 ml-2">
-            <span
-              v-if="player.borderDirection === 'PROMOTION'"
-              data-testid="indicator-promotion"
-              class="text-yellow-400 text-xl font-bold leading-none"
-            >↑</span>
-            <span
-              v-else-if="player.borderDirection === 'RELEGATION'"
-              data-testid="indicator-relegation"
-              class="text-accent text-xl font-bold leading-none"
-            >↓</span>
-          </div>
         </div>
         <div class="text-sm text-gray-300">
           {{ totalGames }}戦{{ player.wins }}勝（{{ winRateDisplay }}）
@@ -97,5 +97,65 @@ const rankClass = computed(() => {
 .rank-lower {
   color: rgba(255, 255, 255, 0.55);
   font-size: 1rem;
+}
+
+.gekokujo-stamp {
+  font-family: 'Yuji Syuku', serif;
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%) rotate(8deg);
+  font-size: 1.6rem;
+  color: #ff2222;
+  text-shadow:
+    0 0 8px rgba(255, 60, 0, 0.9),
+    1px 1px 0 #7a0000,
+    -1px -1px 0 #7a0000;
+  pointer-events: none;
+  white-space: nowrap;
+  line-height: 1;
+  opacity: 0.92;
+  animation: stamp-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes stamp-in {
+  from {
+    transform: translateY(-50%) rotate(8deg) scale(2.5);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(-50%) rotate(8deg) scale(1);
+    opacity: 0.92;
+  }
+}
+
+.youchien-stamp {
+  font-family: 'Hachi Maru Pop', cursive;
+  position: absolute;
+  top: 50%;
+  right: 40px;
+  transform: translateY(-50%) rotate(-6deg);
+  font-size: 1rem;
+  color: #ff88cc;
+  text-shadow:
+    0 0 6px rgba(255, 150, 200, 0.8),
+    1px 1px 0 #aa3366,
+    -1px -1px 0 #aa3366;
+  pointer-events: none;
+  white-space: nowrap;
+  line-height: 1;
+  opacity: 0.95;
+  animation: youchien-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes youchien-in {
+  from {
+    transform: translateY(-50%) rotate(-6deg) scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(-50%) rotate(-6deg) scale(1);
+    opacity: 0.95;
+  }
 }
 </style>
