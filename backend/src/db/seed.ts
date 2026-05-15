@@ -9,6 +9,7 @@ interface SeedPlayer {
   team: 'FIRST' | 'SECOND'
   title: string | null
   mainUnit: string | null
+  isAdmin?: boolean
 }
 
 const SEED_PLAYERS: SeedPlayer[] = [
@@ -18,6 +19,7 @@ const SEED_PLAYERS: SeedPlayer[] = [
     team: "FIRST",
     title: "",
     mainUnit: "",
+    isAdmin: true,
   },
   {
     name: "らりほー",
@@ -32,6 +34,7 @@ const SEED_PLAYERS: SeedPlayer[] = [
     team: "FIRST",
     title: null,
     mainUnit: "",
+    isAdmin: true,
   },
   {
     name: "K",
@@ -74,6 +77,7 @@ const SEED_PLAYERS: SeedPlayer[] = [
     team: "SECOND",
     title: null,
     mainUnit: "ストライクルージュ",
+    isAdmin: true,
   },
   {
     name: "かたはば",
@@ -110,8 +114,12 @@ async function seed() {
       team: p.team,
       title: p.title,
       mainUnit: p.mainUnit,
+      isAdmin: p.isAdmin ?? false,
       createdAt: new Date(),
-    }).onConflictDoNothing()
+    }).onConflictDoUpdate({
+      target: players.name,
+      set: { isAdmin: p.isAdmin ?? false },
+    })
     console.log(`  - ${p.name} (${p.team})`)
   }
 

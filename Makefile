@@ -1,5 +1,5 @@
 .PHONY: dev build lint test \
-        db-generate db-migrate db-push db-studio \
+        db-generate db-migrate db-push db-studio db-seed db-seed-revealing \
         install clean
 
 # ── 開発 ──────────────────────────────────────────────────
@@ -31,6 +31,12 @@ db-push:
 
 db-studio:
 	cd backend && npx drizzle-kit studio
+
+db-seed:
+	cd backend && npm run db:seed
+
+db-seed-revealing:
+	cd backend && npm run db:seed:revealing
 
 # ── セットアップ ──────────────────────────────────────────
 install:

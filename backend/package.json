@@ -10,7 +10,8 @@
     "build:types": "tsc -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:seed": "node --env-file=.env --import tsx/esm src/db/seed.ts"
+    "db:seed": "node --env-file=.env --import tsx/esm src/db/seed.ts",
+    "db:seed:revealing": "node --env-file=.env --import tsx/esm src/db/seed-revealing.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.0",
