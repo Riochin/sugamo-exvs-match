@@ -50,8 +50,8 @@ export function computePlayerResults(rows: ScoreRow[]): PlayerResult[] {
   const sorted = [...present].sort((a, b) => {
     const rateA = a.wins + a.losses === 0 ? 0 : a.wins / (a.wins + a.losses)
     const rateB = b.wins + b.losses === 0 ? 0 : b.wins / (b.wins + b.losses)
-    if (rateB !== rateA) return rateB - rateA
-    return b.wins - a.wins
+    if (b.wins !== a.wins) return b.wins - a.wins
+    return rateB - rateA
   })
 
   // SECOND players who entered first slots — cap at top BORDER_LIMIT (best rank)
