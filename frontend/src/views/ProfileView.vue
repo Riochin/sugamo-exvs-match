@@ -64,17 +64,36 @@
         <h3 class="text-sm font-semibold text-gray-400 mb-3">直近5回の勝率推移</h3>
         <WinRateHistory :history="profile.winRateHistory" />
       </div>
+
+      <button
+        v-if="isOwnProfile"
+        data-testid="logout-button"
+        @click="handleLogout"
+        class="w-full mt-4 py-3 rounded-lg bg-gray-500 text-white text-sm"
+      >
+        ログアウト
+      </button>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRoute, RouterLink } from 'vue-router'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { usePlayerProfile } from '@/composables/usePlayerProfile'
+import { useAuth } from '@/composables/useAuth'
 import WinRateHistory from '@/components/group/WinRateHistory.vue'
 
 const route = useRoute()
+const router = useRouter()
 const playerId = computed(() => String(route.params.id))
 const { profile, isLoading, error, notFound } = usePlayerProfile(playerId)
+
+const { currentPlayer, logout } = useAuth()
+const isOwnProfile = computed(() => currentPlayer.value?.playerId === playerId.value)
+
+async function handleLogout() {
+  await logout()
+  router.push('/login')
+}
 </script>
