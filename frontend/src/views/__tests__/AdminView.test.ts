@@ -15,6 +15,7 @@ const mockError = ref<string | null>(null)
 const mockCreateEvent = vi.fn()
 const mockSetAbsent = vi.fn()
 const mockAdvancePhase = vi.fn()
+const mockSetPhase = vi.fn()
 const mockRefresh = vi.fn()
 
 vi.mock('@/composables/useAdminEvent', () => ({
@@ -25,6 +26,7 @@ vi.mock('@/composables/useAdminEvent', () => ({
     createEvent: mockCreateEvent,
     setAbsent: mockSetAbsent,
     advancePhase: mockAdvancePhase,
+    setPhase: mockSetPhase,
     refresh: mockRefresh,
   }),
 }))
@@ -101,15 +103,15 @@ describe('AdminView', () => {
     expect(wrapper.find('[data-testid="scores-list"]').exists()).toBe(false)
   })
 
-  it('phase === COLLECTING のとき参加者一覧と REVEALING ボタンを表示する', async () => {
+  it('phase === COLLECTING のとき参加者一覧とフェーズ変更ボタンを表示する', async () => {
     mockActiveEvent.value = { id: 'e1', phase: 'COLLECTING', heldAt: '2026-05-12T00:00:00.000Z', scores: sampleScores }
     const router = createTestRouter()
     const wrapper = mount(AdminView, { global: { plugins: [router] } })
     await flushPromises()
 
     expect(wrapper.find('[data-testid="scores-list"]').exists()).toBe(true)
-    expect(wrapper.find('[data-testid="advance-phase-btn"]').exists()).toBe(true)
-    expect(wrapper.find('[data-testid="advance-phase-btn"]').text()).toContain('REVEALING')
+    const buttons = wrapper.findAll('button')
+    expect(buttons.some((b) => b.text() === 'REVEALING')).toBe(true)
   })
 
   it('phase === COLLECTING のとき欠席チェックボックスが各プレイヤーに表示される', async () => {
@@ -177,17 +179,22 @@ describe('AdminView', () => {
     expect(calledArg.hasPromotionRelegation).toBe(false)
   })
 
-  it('フェーズ遷移ボタンを押すと advancePhase() を呼ぶ', async () => {
+  it('フェーズ変更ボタンを押して確認すると setPhase() を呼ぶ', async () => {
     mockActiveEvent.value = { id: 'e1', phase: 'COLLECTING', heldAt: '2026-05-12T00:00:00.000Z', scores: sampleScores }
-    mockAdvancePhase.mockResolvedValue(undefined)
+    mockSetPhase.mockResolvedValue(undefined)
     const router = createTestRouter()
     const wrapper = mount(AdminView, { global: { plugins: [router] } })
     await flushPromises()
 
-    await wrapper.find('[data-testid="advance-phase-btn"]').trigger('click')
+    const revealingBtn = wrapper.findAll('button').find((b) => b.text() === 'REVEALING')
+    await revealingBtn!.trigger('click')
     await flushPromises()
 
-    expect(mockAdvancePhase).toHaveBeenCalledOnce()
+    const confirmBtn = wrapper.findAll('button').find((b) => b.text().includes('変更する'))
+    await confirmBtn!.trigger('click')
+    await flushPromises()
+
+    expect(mockSetPhase).toHaveBeenCalledWith('REVEALING')
   })
 
   it('欠席チェックボックスを変更すると setAbsent() を呼ぶ', async () => {

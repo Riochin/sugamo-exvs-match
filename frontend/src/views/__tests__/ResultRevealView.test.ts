@@ -289,7 +289,7 @@ describe('ResultRevealView', () => {
     expect(wrapper.find('[data-testid="advance-button"]').exists()).toBe(false)
   })
 
-  it('revealPhase=3 のとき「次のフェーズへ」ボタンが disabled', async () => {
+  it('revealPhase=3 のとき「終了」ボタンが表示される', async () => {
     mockCurrentPlayer.value = { playerId: 'admin', name: 'Admin', isAdmin: true }
     mockEventPhase.value = 'REVEALING'
     mockRevealPhase.value = 3
@@ -300,10 +300,10 @@ describe('ResultRevealView', () => {
     await flushPromises()
 
     const btn = wrapper.find('[data-testid="advance-button"]')
-    expect((btn.element as HTMLButtonElement).disabled).toBe(true)
+    expect(btn.text()).toBe('終了')
   })
 
-  it('eventPhase=DONE のとき「次のフェーズへ」ボタンが disabled', async () => {
+  it('eventPhase=DONE のとき「終了」ボタンが表示される', async () => {
     mockCurrentPlayer.value = { playerId: 'admin', name: 'Admin', isAdmin: true }
     mockEventPhase.value = 'DONE'
     mockRevealPhase.value = 3
@@ -314,10 +314,10 @@ describe('ResultRevealView', () => {
     await flushPromises()
 
     const btn = wrapper.find('[data-testid="advance-button"]')
-    expect((btn.element as HTMLButtonElement).disabled).toBe(true)
+    expect(btn.text()).toBe('終了')
   })
 
-  it('revealPhase=2 のとき「終了」ボタンが表示される', async () => {
+  it('revealPhase=2 のとき「次のフェーズへ」ボタンが表示される', async () => {
     mockCurrentPlayer.value = { playerId: 'admin', name: 'Admin', isAdmin: true }
     mockEventPhase.value = 'REVEALING'
     mockRevealPhase.value = 2
@@ -328,7 +328,7 @@ describe('ResultRevealView', () => {
     await flushPromises()
 
     const btn = wrapper.find('[data-testid="advance-button"]')
-    expect(btn.text()).toBe('終了')
+    expect(btn.text()).toBe('次のフェーズへ')
     expect((btn.element as HTMLButtonElement).disabled).toBe(false)
   })
 
@@ -346,19 +346,18 @@ describe('ResultRevealView', () => {
     expect(btn.text()).toBe('次のフェーズへ')
   })
 
-  it('管理者が「終了」を押して eventPhase が DONE に遷移すると /admin へ移動する', async () => {
+  it('管理者が「終了」を押すと /admin へ移動する', async () => {
     mockCurrentPlayer.value = { playerId: 'admin', name: 'Admin', isAdmin: true }
     mockEventPhase.value = 'REVEALING'
-    mockRevealPhase.value = 2
+    mockRevealPhase.value = 3
 
     const router = createTestRouter()
     const replaceSpy = vi.spyOn(router, 'replace')
     await router.isReady()
-    mount(ResultRevealView, { global: { plugins: [router] } })
+    const wrapper = mount(ResultRevealView, { global: { plugins: [router] } })
     await flushPromises()
 
-    mockEventPhase.value = 'DONE'
-    await flushPromises()
+    await wrapper.find('[data-testid="advance-button"]').trigger('click')
 
     expect(replaceSpy).toHaveBeenCalledWith('/admin')
   })
@@ -371,11 +370,16 @@ describe('ResultRevealView', () => {
     const router = createTestRouter()
     const replaceSpy = vi.spyOn(router, 'replace')
     await router.isReady()
+
+    vi.useFakeTimers()
     mount(ResultRevealView, { global: { plugins: [router] } })
     await flushPromises()
 
     mockEventPhase.value = 'DONE'
     await flushPromises()
+
+    vi.advanceTimersByTime(1500)
+    vi.useRealTimers()
 
     expect(replaceSpy).toHaveBeenCalledWith('/')
   })

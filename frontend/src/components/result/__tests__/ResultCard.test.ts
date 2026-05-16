@@ -30,8 +30,8 @@ describe('ResultCard', () => {
     const wrapper = mount(ResultCard, {
       props: { player: makePlayer({ wins: 4, losses: 2 }), rank: 1 },
     })
-    expect(wrapper.text()).toContain('4')
-    expect(wrapper.text()).toContain('2')
+    expect(wrapper.text()).toContain('6戦')
+    expect(wrapper.text()).toContain('4勝')
   })
 
   it('最終順位を表示する', () => {
@@ -78,7 +78,7 @@ describe('ResultCard', () => {
     expect(wrapper.find('[data-testid="indicator-relegation"]').exists()).toBe(false)
   })
 
-  it('昇格インジケーターに yellow-400 クラスが付く', () => {
+  it('昇格インジケーターに gekokujo-stamp クラスが付く', () => {
     const wrapper = mount(ResultCard, {
       props: {
         player: makePlayer({ borderDirection: 'PROMOTION', group: 'BORDER' }),
@@ -86,10 +86,10 @@ describe('ResultCard', () => {
       },
     })
     const el = wrapper.find('[data-testid="indicator-promotion"]')
-    expect(el.classes().some((c) => c.includes('yellow'))).toBe(true)
+    expect(el.classes()).toContain('gekokujo-stamp')
   })
 
-  it('降格インジケーターに accent スタイルが付く', () => {
+  it('降格インジケーターに youchien-stamp クラスが付く', () => {
     const wrapper = mount(ResultCard, {
       props: {
         player: makePlayer({ borderDirection: 'RELEGATION', group: 'BORDER' }),
@@ -97,6 +97,6 @@ describe('ResultCard', () => {
       },
     })
     const el = wrapper.find('[data-testid="indicator-relegation"]')
-    expect(el.attributes('style') ?? el.classes().join(' ')).toMatch(/c20e00|accent/)
+    expect(el.classes()).toContain('youchien-stamp')
   })
 })
