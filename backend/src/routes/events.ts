@@ -18,6 +18,10 @@ const setAbsentSchema = z.object({
   absent: z.boolean(),
 })
 
+const setPhaseSchema = z.object({
+  phase: z.enum(['COLLECTING', 'STAR_VOTING', 'REVEALING', 'DONE']),
+})
+
 const updateScoreSchema = z.object({
   wins: z.number().int().min(0),
   losses: z.number().int().min(0),
@@ -65,6 +69,15 @@ export const eventsRoute = new Hono()
   .patch('/:id/phase', adminMiddleware, async (c) => {
     const { id } = c.req.param()
     const result = await eventService.advancePhase({ eventId: id })
+    if ('code' in result) {
+      return c.json({ error: result.code }, errorToStatus(result.code))
+    }
+    return c.json({ id, phase: result.phase })
+  })
+  .put('/:id/force-phase', adminMiddleware, zValidator('json', setPhaseSchema), async (c) => {
+    const { id } = c.req.param()
+    const { phase } = c.req.valid('json')
+    const result = await eventService.setPhase({ eventId: id, phase })
     if ('code' in result) {
       return c.json({ error: result.code }, errorToStatus(result.code))
     }

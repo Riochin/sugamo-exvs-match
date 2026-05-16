@@ -230,4 +230,19 @@ export const eventService = {
 
     return { phase: nextPhase }
   },
+
+  async setPhase(params: { eventId: string; phase: EventPhase }): Promise<{ phase: EventPhase } | EventError> {
+    const [event] = await db
+      .select()
+      .from(events)
+      .where(eq(events.id, params.eventId))
+
+    if (!event) return { code: 'EVENT_NOT_FOUND' }
+
+    await db.update(events).set({ phase: params.phase }).where(eq(events.id, params.eventId))
+
+    await hub.broadcast(params.eventId, 'phase_update', { eventId: params.eventId, phase: params.phase })
+
+    return { phase: params.phase }
+  },
 }
