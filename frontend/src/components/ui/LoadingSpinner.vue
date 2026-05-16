@@ -26,7 +26,7 @@
         pathLength="100"
       />
     </svg>
-    <p v-if="label" class="text-gray-400 text-sm">{{ label }}</p>
+    <p v-if="label" class="text-main text-sm">{{ label }}</p>
   </div>
 </template>
 
