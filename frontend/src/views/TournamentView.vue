@@ -1,53 +1,59 @@
 <template>
   <div class="p-4 text-white">
-    <div v-if="!activeEvent" data-testid="no-event-message" class="text-center py-8 text-dark">
-      <p class="text-base font-semibold">大会が開始されていません</p>
-      <p class="text-sm mt-1">しばらくお待ちください</p>
+    <div v-if="isLoading" class="flex justify-center py-16">
+      <LoadingSpinner label="大会情報を取得中..." />
     </div>
 
     <template v-else>
-      <ActiveEventCard :event="activeEvent" @open-score-modal="isScoreModalOpen = true" />
+      <div v-if="!activeEvent" data-testid="no-event-message" class="text-center py-8 text-dark">
+        <p class="text-base font-semibold">大会が開始されていません</p>
+        <p class="text-sm mt-1">しばらくお待ちください</p>
+      </div>
+
+      <template v-else>
+        <ActiveEventCard :event="activeEvent" @open-score-modal="isScoreModalOpen = true" />
+      </template>
+
+      <section v-if="pastEvents.length > 0" class="mt-6">
+        <h2 class="text-sm font-bold mb-3 text-dark border-b border-dark pb-2">
+          開催済みの大会
+        </h2>
+        <ul class="space-y-2">
+          <li
+            v-for="event in pastEvents"
+            :key="event.id"
+            class="flex items-center justify-between p-3 bg-dark border border-main rounded-lg cursor-pointer active:opacity-60"
+            @click="selectedEvent = event"
+          >
+            <div class="flex flex-col gap-0.5">
+              <span class="text-white font-medium text-sm">{{ event.name }}</span>
+              <span class="text-gray-400 text-xs">{{ formatDate(event.heldAt) }}</span>
+            </div>
+            <span class="text-gray-400 text-sm">›</span>
+          </li>
+        </ul>
+      </section>
+
+      <PastEventModal
+        v-if="selectedEvent"
+        :event-id="selectedEvent.id"
+        :held-at="selectedEvent.heldAt"
+        :name="selectedEvent.name"
+        :venue="selectedEvent.venue"
+        :description="selectedEvent.description"
+        :has-promotion-relegation="selectedEvent.hasPromotionRelegation"
+        :visible="true"
+        @close="selectedEvent = null"
+      />
+
+      <ScoreEntryModal
+        v-if="activeEvent && phase === 'COLLECTING'"
+        :event-id="activeEvent.id"
+        :visible="isScoreModalOpen"
+        :progress-update="progressUpdate"
+        @close="isScoreModalOpen = false"
+      />
     </template>
-
-    <section v-if="pastEvents.length > 0" class="mt-6">
-      <h2 class="text-sm font-bold mb-3 text-dark border-b border-dark pb-2">
-        開催済みの大会
-      </h2>
-      <ul class="space-y-2">
-        <li
-          v-for="event in pastEvents"
-          :key="event.id"
-          class="flex items-center justify-between p-3 bg-dark border border-main rounded-lg cursor-pointer active:opacity-60"
-          @click="selectedEvent = event"
-        >
-          <div class="flex flex-col gap-0.5">
-            <span class="text-white font-medium text-sm">{{ event.name }}</span>
-            <span class="text-gray-400 text-xs">{{ formatDate(event.heldAt) }}</span>
-          </div>
-          <span class="text-gray-400 text-sm">›</span>
-        </li>
-      </ul>
-    </section>
-
-    <PastEventModal
-      v-if="selectedEvent"
-      :event-id="selectedEvent.id"
-      :held-at="selectedEvent.heldAt"
-      :name="selectedEvent.name"
-      :venue="selectedEvent.venue"
-      :description="selectedEvent.description"
-      :has-promotion-relegation="selectedEvent.hasPromotionRelegation"
-      :visible="true"
-      @close="selectedEvent = null"
-    />
-
-    <ScoreEntryModal
-      v-if="activeEvent && phase === 'COLLECTING'"
-      :event-id="activeEvent.id"
-      :visible="isScoreModalOpen"
-      :progress-update="progressUpdate"
-      @close="isScoreModalOpen = false"
-    />
   </div>
 </template>
 
@@ -59,6 +65,7 @@ import { useEventStream } from '@/composables/useEventStream'
 import ActiveEventCard from '@/components/event/ActiveEventCard.vue'
 import PastEventModal from '@/components/event/PastEventModal.vue'
 import ScoreEntryModal from '@/components/score/ScoreEntryModal.vue'
+import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 
 interface ActiveEvent {
   id: string
@@ -84,6 +91,7 @@ interface EventSummary {
 const router = useRouter()
 const { progressUpdate, resultReady, currentPhase, connect } = useEventStream()
 
+const isLoading = ref(true)
 const activeEvent = ref<ActiveEvent | null>(null)
 const initialPhase = ref<'COLLECTING' | 'STAR_VOTING' | 'REVEALING' | 'DONE' | null>(null)
 const pastEvents = ref<EventSummary[]>([])
@@ -111,35 +119,39 @@ watch(currentPhase, (newPhase) => {
 })
 
 onMounted(async () => {
-  const [activeRes, pastRes] = await Promise.allSettled([
-    client.api.events.active.$get(),
-    client.api.events.$get(),
-  ])
+  try {
+    const [activeRes, pastRes] = await Promise.allSettled([
+      client.api.events.active.$get(),
+      client.api.events.$get(),
+    ])
 
-  if (pastRes.status === 'fulfilled' && pastRes.value.ok) {
-    const data = await pastRes.value.json()
-    pastEvents.value = data as EventSummary[]
-  }
-
-  if (activeRes.status === 'fulfilled' && activeRes.value.ok) {
-    const data = await activeRes.value.json()
-    const event = (data as { event: ActiveEvent | null }).event
-    if (!event) return
-
-    activeEvent.value = event
-    initialPhase.value = event.phase
-
-    if (event.phase === 'STAR_VOTING') {
-      router.replace(`/events/${event.id}/star-voting`)
-      return
+    if (pastRes.status === 'fulfilled' && pastRes.value.ok) {
+      const data = await pastRes.value.json()
+      pastEvents.value = data as EventSummary[]
     }
 
-    if (event.phase === 'REVEALING') {
-      router.replace(`/events/${event.id}/result`)
-      return
-    }
+    if (activeRes.status === 'fulfilled' && activeRes.value.ok) {
+      const data = await activeRes.value.json()
+      const event = (data as { event: ActiveEvent | null }).event
+      if (!event) return
 
-    connect(event.id)
+      activeEvent.value = event
+      initialPhase.value = event.phase
+
+      if (event.phase === 'STAR_VOTING') {
+        router.replace(`/events/${event.id}/star-voting`)
+        return
+      }
+
+      if (event.phase === 'REVEALING') {
+        router.replace(`/events/${event.id}/result`)
+        return
+      }
+
+      connect(event.id)
+    }
+  } finally {
+    isLoading.value = false
   }
 })
 

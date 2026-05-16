@@ -2,7 +2,11 @@
   <div class="min-h-screen bg-[#090014] px-4 py-6 text-white">
     <h1 class="mb-6 text-xl font-bold text-main">管理者ダッシュボード</h1>
 
-    <template v-if="currentPlayer?.isAdmin">
+    <div v-if="isInitialLoading" class="flex justify-center py-16">
+      <LoadingSpinner label="データを取得中..." />
+    </div>
+
+    <template v-else-if="currentPlayer?.isAdmin">
       <div data-testid="admin-content">
         <p v-if="error" data-testid="error-message" class="mb-4 rounded border border-accent bg-dark px-4 py-2 text-sm text-red-400">
           {{ error }}
@@ -162,6 +166,7 @@
     <template v-else>
       <p class="text-gray-400">管理者権限が必要です。</p>
     </template>
+
   </div>
 </template>
 
@@ -171,9 +176,10 @@ import { useRouter } from 'vue-router'
 import { useAdminEvent } from '@/composables/useAdminEvent'
 import { useAuth } from '@/composables/useAuth'
 import { useEventStream } from '@/composables/useEventStream'
+import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 
 const router = useRouter()
-const { activeEvent, isLoading, error, createEvent, setAbsent, setPhase, refresh } = useAdminEvent()
+const { activeEvent, isLoading, isInitialLoading, error, createEvent, setAbsent, setPhase, refresh } = useAdminEvent()
 const { currentPlayer } = useAuth()
 
 const allPhases = ['COLLECTING', 'STAR_VOTING', 'REVEALING', 'DONE'] as const

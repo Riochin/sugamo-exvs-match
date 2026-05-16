@@ -3,9 +3,9 @@
     <div
       v-if="isLoading"
       data-testid="loading-spinner"
-      class="flex justify-center py-8"
+      class="flex justify-center py-16"
     >
-      <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-main" />
+      <LoadingSpinner />
     </div>
 
     <div
@@ -51,6 +51,7 @@
 <script setup lang="ts">
 import { useGroupProfile } from '@/composables/useGroupProfile'
 import PlayerCard from '@/components/group/PlayerCard.vue'
+import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 
 const { firstTeam, secondTeam, isLoading, error } = useGroupProfile()
 </script>

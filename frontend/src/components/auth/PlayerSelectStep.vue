@@ -3,7 +3,7 @@
     <h2 class="text-center text-lg font-bold text-white">プレイヤーを選択</h2>
 
     <div v-if="isLoading" data-testid="loading" class="flex justify-center py-8">
-      <div class="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />
+      <LoadingSpinner label="プレイヤー一覧を取得中..." />
     </div>
 
     <div v-else-if="error !== null">
@@ -47,6 +47,8 @@ interface Props {
   isLoading: boolean
   error: string | null
 }
+
+import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 
 defineProps<Props>()
 

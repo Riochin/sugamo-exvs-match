@@ -34,6 +34,7 @@ export interface CreateEventParams {
 export interface UseAdminEventReturn {
   activeEvent: Readonly<Ref<EventWithScores | null>>
   isLoading: Readonly<Ref<boolean>>
+  isInitialLoading: Readonly<Ref<boolean>>
   error: Readonly<Ref<string | null>>
   createEvent(params: CreateEventParams): Promise<void>
   setAbsent(playerId: string, absent: boolean): Promise<void>
@@ -45,6 +46,7 @@ export interface UseAdminEventReturn {
 export function useAdminEvent(): UseAdminEventReturn {
   const activeEvent = ref<EventWithScores | null>(null)
   const isLoading = ref(false)
+  const isInitialLoading = ref(true)
   const error = ref<string | null>(null)
 
   async function refresh(): Promise<void> {
@@ -56,6 +58,8 @@ export function useAdminEvent(): UseAdminEventReturn {
       }
     } catch {
       error.value = 'データの取得に失敗しました'
+    } finally {
+      isInitialLoading.value = false
     }
   }
 
@@ -162,6 +166,7 @@ export function useAdminEvent(): UseAdminEventReturn {
   return {
     activeEvent: readonly(activeEvent),
     isLoading: readonly(isLoading),
+    isInitialLoading: readonly(isInitialLoading),
     error: readonly(error),
     createEvent,
     setAbsent,
