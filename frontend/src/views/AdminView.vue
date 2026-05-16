@@ -34,7 +34,7 @@
             type="datetime-local"
             min="1000-01-01T00:00"
             max="9999-12-31T23:59"
-            class="mb-4 w-full rounded border border-main bg-[#090014] px-3 py-2 text-white focus:border-accent focus:outline-none"
+            class="mb-4 w-full min-w-0 rounded border border-main bg-[#090014] px-3 py-2 text-white focus:border-accent focus:outline-none"
             required
           />
 
