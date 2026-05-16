@@ -5,6 +5,9 @@ export default {
   content: ['./index.html', './src/**/*.{vue,ts,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['"M PLUS Rounded 1c"', 'sans-serif'],
+      },
       colors: {
         bg: '#b38ec7',
         'bg-sub': '#9681a2',
