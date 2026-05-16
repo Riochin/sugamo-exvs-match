@@ -1,7 +1,7 @@
 <template>
   <div class="p-4 text-white">
-    <div v-if="!activeEvent" data-testid="no-event-message" class="text-center py-8 text-gray-400">
-      <p class="text-base">大会が開始されていません</p>
+    <div v-if="!activeEvent" data-testid="no-event-message" class="text-center py-8 text-dark">
+      <p class="text-base font-semibold">大会が開始されていません</p>
       <p class="text-sm mt-1">しばらくお待ちください</p>
     </div>
 
@@ -10,7 +10,7 @@
     </template>
 
     <section v-if="pastEvents.length > 0" class="mt-6">
-      <h2 class="text-sm font-bold mb-3 text-gray-400 border-b border-gray-700 pb-2">
+      <h2 class="text-sm font-bold mb-3 text-dark border-b border-dark pb-2">
         開催済みの大会
       </h2>
       <ul class="space-y-2">
