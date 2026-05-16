@@ -200,9 +200,9 @@ describe('PastEventModal', () => {
     const wrapper = mount(PastEventModal, { props: baseProps })
     await flushPromises()
 
-    // Alice: 5勝1敗 → 83.3%
+    // Alice: 6戦 5勝 → 83.3%
     expect(wrapper.text()).toContain('83.3%')
-    // Bob: 3勝3敗 → 50.0%
+    // Bob: 6戦 3勝 → 50.0%
     expect(wrapper.text()).toContain('50.0%')
   })
 

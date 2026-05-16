@@ -29,7 +29,7 @@
           <span class="font-bold text-base truncate">{{ player.playerName }}</span>
         </div>
         <div class="text-sm text-gray-300">
-          {{ totalGames }}戦{{ player.wins }}勝（{{ winRateDisplay }}）
+          {{ totalGames }}戦 {{ player.wins }}勝（{{ winRateDisplay }}）
         </div>
       </div>
     </div>

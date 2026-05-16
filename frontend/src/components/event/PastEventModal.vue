@@ -41,7 +41,7 @@
       >
         <span class="w-8 text-center text-yellow-400 font-bold shrink-0">{{ p.rank }}位</span>
         <span class="flex-1 text-white">{{ p.playerName }}</span>
-        <span class="text-gray-300 shrink-0">{{ p.wins }}勝{{ p.losses }}敗</span>
+        <span class="text-gray-300 shrink-0">{{ p.wins + p.losses }}戦 {{ p.wins }}勝</span>
         <span class="text-gray-300 w-14 text-right shrink-0">{{ winRate(p.wins, p.losses) }}</span>
         <button
           v-if="currentPlayer?.isAdmin"

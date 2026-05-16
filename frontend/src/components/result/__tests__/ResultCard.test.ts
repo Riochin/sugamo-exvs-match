@@ -26,7 +26,7 @@ describe('ResultCard', () => {
     expect(wrapper.text()).toContain('アリス')
   })
 
-  it('勝敗数（wins-losses）を表示する', () => {
+  it('戦数・勝数を表示する', () => {
     const wrapper = mount(ResultCard, {
       props: { player: makePlayer({ wins: 4, losses: 2 }), rank: 1 },
     })
