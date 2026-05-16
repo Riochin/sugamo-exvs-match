@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:seed": "node --env-file=.env --import tsx/esm src/db/seed.ts",
-    "db:seed:revealing": "node --env-file=.env --import tsx/esm src/db/seed-revealing.ts"
+    "db:seed:revealing": "node --env-file=.env --import tsx/esm src/db/seed-revealing.ts",
+    "db:seed:star-voting": "node --env-file=.env --import tsx/esm src/db/seed-star-voting.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.0",

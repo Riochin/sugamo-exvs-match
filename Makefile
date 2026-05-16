@@ -1,5 +1,5 @@
 .PHONY: dev build lint test \
-        db-generate db-migrate db-push db-studio db-seed db-seed-revealing \
+        db-generate db-migrate db-push db-studio db-seed db-seed-revealing db-seed-star-voting \
         install clean
 
 # ── 開発 ──────────────────────────────────────────────────
@@ -37,6 +37,9 @@ db-seed:
 
 db-seed-revealing:
 	cd backend && npm run db:seed:revealing
+
+db-seed-star-voting:
+	cd backend && npm run db:seed:star-voting
 
 # ── セットアップ ──────────────────────────────────────────
 install:
