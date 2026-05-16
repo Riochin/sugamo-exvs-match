@@ -5,7 +5,7 @@
       data-testid="loading-spinner"
       class="flex justify-center py-8"
     >
-      <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-main" />
+      <LoadingSpinner />
     </div>
 
     <div
@@ -97,6 +97,7 @@ import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { usePlayerProfile } from '@/composables/usePlayerProfile'
 import { useAuth } from '@/composables/useAuth'
 import WinRateHistory from '@/components/group/WinRateHistory.vue'
+import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 
 const route = useRoute()
 const router = useRouter()

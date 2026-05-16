@@ -25,8 +25,8 @@
       </p>
     </div>
 
-    <div v-if="isLoading" class="py-8 text-center text-gray-400">
-      読み込み中...
+    <div v-if="isLoading" class="flex justify-center py-8">
+      <LoadingSpinner />
     </div>
 
     <div v-else-if="error" class="py-4 text-center text-red-400 text-sm px-4">
@@ -82,6 +82,7 @@
 import { ref, computed, watch } from 'vue'
 import { client } from '@/api/client'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
+import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import PastEventScoreEditModal from '@/components/event/PastEventScoreEditModal.vue'
 import { useAuth } from '@/composables/useAuth'
 

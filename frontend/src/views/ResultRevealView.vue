@@ -10,8 +10,8 @@
       </h1>
 
       <!-- ローディング -->
-      <div v-if="isLoading && !result" class="flex items-center justify-center py-16">
-        <p class="text-gray-400">読み込み中...</p>
+      <div v-if="isLoading && !result" class="flex justify-center py-16">
+        <LoadingSpinner />
       </div>
 
       <!-- エラー -->
@@ -104,6 +104,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useResultReveal } from '@/composables/useResultReveal'
 import { useAuth } from '@/composables/useAuth'
 import ResultCard from '@/components/result/ResultCard.vue'
+import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import StarResultsSection from '@/components/star/StarResultsSection.vue'
 
 const route = useRoute()

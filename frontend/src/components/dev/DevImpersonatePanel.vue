@@ -7,7 +7,9 @@
     <div v-if="currentPlayer" class="mb-2 truncate text-gray-400">
       現在: <span class="text-white">{{ currentPlayer.name }}</span>
     </div>
-    <div v-if="loading" class="text-gray-400">読み込み中...</div>
+    <div v-if="loading" class="flex justify-center py-2">
+      <LoadingSpinner :size="32" label="" />
+    </div>
     <ul v-else class="max-h-48 overflow-y-auto space-y-1">
       <li v-for="p in players" :key="p.id">
         <button
@@ -34,6 +36,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { useAuth } from '@/composables/useAuth'
+import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 
 const BASE = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 

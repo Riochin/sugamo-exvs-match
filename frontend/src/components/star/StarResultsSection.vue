@@ -4,8 +4,8 @@
       Star ランキング
     </h2>
 
-    <div v-if="isLoading" class="text-center py-8 text-gray-400">
-      読み込み中...
+    <div v-if="isLoading" class="flex justify-center py-8">
+      <LoadingSpinner />
     </div>
 
     <div v-else-if="error" data-testid="ranking-error" class="py-4 text-center text-red-400 text-sm">
@@ -40,6 +40,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { client } from '@/api/client'
+import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 
 interface StarRanking {
   rank: number
