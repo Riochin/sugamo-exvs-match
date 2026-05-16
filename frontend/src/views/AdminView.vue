@@ -76,15 +76,16 @@
           </button>
         </form>
 
-        <!-- COLLECTING フェーズ: 参加者一覧 + REVEALING ボタン -->
-        <template v-else-if="activeEvent.phase === 'COLLECTING'">
-          <div class="mb-4 rounded border border-main bg-dark p-4">
+        <!-- アクティブ大会 -->
+        <template v-else>
+          <div class="rounded border border-main bg-dark p-4">
             <h2 class="mb-2 text-lg font-semibold">
               大会中 — <span class="text-main">{{ activeEvent.phase }}</span>
             </h2>
             <p class="mb-4 text-sm text-gray-400">開催日時: {{ formatDate(activeEvent.heldAt) }}</p>
 
-            <ul data-testid="scores-list" class="mb-4 space-y-2">
+            <!-- COLLECTING フェーズ: 参加者一覧 -->
+            <ul v-if="activeEvent.phase === 'COLLECTING'" data-testid="scores-list" class="mb-6 space-y-2">
               <li
                 v-for="score in activeEvent.scores"
                 :key="score.playerId"
@@ -104,32 +105,49 @@
               </li>
             </ul>
 
-            <button
-              data-testid="advance-phase-btn"
-              :disabled="isLoading"
-              class="w-full rounded bg-main px-4 py-2 font-bold text-white disabled:opacity-50"
-              @click="advancePhase"
-            >
-              {{ isLoading ? '処理中...' : 'REVEALING へ' }}
-            </button>
-          </div>
-        </template>
+            <!-- フェーズ強制変更 -->
+            <div class="border-t border-main pt-4">
+              <p class="mb-2 text-xs text-gray-400">フェーズを強制変更</p>
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  v-for="phase in allPhases"
+                  :key="phase"
+                  :disabled="isLoading || phase === activeEvent.phase"
+                  :class="[
+                    'w-full rounded px-2 py-2 text-sm font-bold transition-colors disabled:cursor-not-allowed',
+                    phase === activeEvent.phase
+                      ? 'bg-main text-white opacity-60'
+                      : 'border border-main text-main hover:bg-main hover:text-white disabled:opacity-30',
+                  ]"
+                  @click="pendingPhase = phase"
+                >
+                  {{ phase }}
+                </button>
+              </div>
 
-        <!-- REVEALING フェーズ: 情報表示のみ（フェーズ進行は結果発表ページで管理） -->
-        <template v-else-if="activeEvent.phase === 'REVEALING'">
-          <div class="rounded border border-main bg-dark p-4">
-            <h2 class="mb-2 text-lg font-semibold">
-              大会中 — <span class="text-main">{{ activeEvent.phase }}</span>
-            </h2>
-            <p class="text-sm text-gray-400">開催日時: {{ formatDate(activeEvent.heldAt) }}</p>
-          </div>
-        </template>
-
-        <!-- DONE フェーズ: 読み取り専用 -->
-        <template v-else-if="activeEvent.phase === 'DONE'">
-          <div class="rounded border border-main bg-dark p-4">
-            <h2 class="mb-2 text-lg font-semibold">大会終了</h2>
-            <p class="text-sm text-gray-400">開催日時: {{ formatDate(activeEvent.heldAt) }}</p>
+              <!-- 確認UI -->
+              <div v-if="pendingPhase" class="mt-3 rounded border border-accent bg-[#090014] p-3">
+                <p class="mb-3 text-sm">
+                  フェーズを <span class="font-bold text-accent">{{ pendingPhase }}</span> に変更しますか？
+                </p>
+                <div class="flex gap-2">
+                  <button
+                    :disabled="isLoading"
+                    class="flex-1 rounded bg-accent px-3 py-2 text-sm font-bold text-white disabled:opacity-50"
+                    @click="confirmSetPhase"
+                  >
+                    {{ isLoading ? '処理中...' : '変更する' }}
+                  </button>
+                  <button
+                    :disabled="isLoading"
+                    class="flex-1 rounded border border-main px-3 py-2 text-sm font-bold text-white disabled:opacity-50"
+                    @click="pendingPhase = null"
+                  >
+                    キャンセル
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </template>
       </div>
@@ -149,9 +167,19 @@ import { useAuth } from '@/composables/useAuth'
 import { useEventStream } from '@/composables/useEventStream'
 
 const router = useRouter()
-const { activeEvent, isLoading, error, createEvent, setAbsent, advancePhase, refresh } = useAdminEvent()
+const { activeEvent, isLoading, error, createEvent, setAbsent, setPhase, refresh } = useAdminEvent()
 const { currentPlayer } = useAuth()
+
+const allPhases = ['COLLECTING', 'STAR_VOTING', 'REVEALING', 'DONE'] as const
+type EventPhase = (typeof allPhases)[number]
+const pendingPhase = ref<EventPhase | null>(null)
 const { connect, latestPhaseUpdate } = useEventStream()
+
+async function confirmSetPhase() {
+  if (!pendingPhase.value) return
+  await setPhase(pendingPhase.value)
+  pendingPhase.value = null
+}
 
 watch(currentPlayer, (player) => {
   if (!player?.isAdmin) router.push('/')
