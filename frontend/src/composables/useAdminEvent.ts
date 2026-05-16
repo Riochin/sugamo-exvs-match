@@ -38,6 +38,7 @@ export interface UseAdminEventReturn {
   createEvent(params: CreateEventParams): Promise<void>
   setAbsent(playerId: string, absent: boolean): Promise<void>
   advancePhase(): Promise<void>
+  setPhase(phase: EventPhase): Promise<void>
   refresh(): Promise<void>
 }
 
@@ -130,6 +131,32 @@ export function useAdminEvent(): UseAdminEventReturn {
     }
   }
 
+  async function setPhase(phase: EventPhase): Promise<void> {
+    if (isLoading.value) return
+    if (!activeEvent.value) return
+    isLoading.value = true
+    error.value = null
+    try {
+      const base = import.meta.env.VITE_API_BASE_URL ?? ''
+      const res = await fetch(`${base}/api/events/${activeEvent.value.id}/force-phase`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ phase }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        error.value = (data as { error: string }).error
+        return
+      }
+      await refresh()
+    } catch {
+      error.value = 'フェーズの更新に失敗しました'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   refresh()
 
   return {
@@ -139,6 +166,7 @@ export function useAdminEvent(): UseAdminEventReturn {
     createEvent,
     setAbsent,
     advancePhase,
+    setPhase,
     refresh,
   }
 }
