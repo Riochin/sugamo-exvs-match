@@ -15,29 +15,9 @@
         stroke-linecap="round"
         opacity="0.12"
       />
-      <!-- tail (dim, long) -->
+      <!-- animated stroke -->
       <path
-        class="comet-tail"
-        :d="PATH"
-        fill="none"
-        stroke="currentColor"
-        :stroke-width="strokeWidth"
-        stroke-linecap="round"
-        pathLength="100"
-      />
-      <!-- body (medium) -->
-      <path
-        class="comet-body"
-        :d="PATH"
-        fill="none"
-        stroke="currentColor"
-        :stroke-width="strokeWidth"
-        stroke-linecap="round"
-        pathLength="100"
-      />
-      <!-- head (bright, short, with glow) -->
-      <path
-        class="comet-head"
+        class="infinity-stroke"
         :d="PATH"
         fill="none"
         stroke="currentColor"
@@ -74,28 +54,12 @@ const viewBox = computed(() => {
 </script>
 
 <style scoped>
-.comet-tail {
-  stroke-dasharray: 22 78;
-  opacity: 0.3;
-  animation: comet 1.5s linear infinite;
+.infinity-stroke {
+  stroke-dasharray: 30 70;
+  animation: spin 1.5s linear infinite;
 }
 
-.comet-body {
-  stroke-dasharray: 12 88;
-  opacity: 0.65;
-  animation: comet 1.5s linear infinite;
-  animation-delay: -0.15s;
-}
-
-.comet-head {
-  stroke-dasharray: 4 96;
-  opacity: 1;
-  filter: drop-shadow(0 0 4px currentColor);
-  animation: comet 1.5s linear infinite;
-  animation-delay: -0.3s;
-}
-
-@keyframes comet {
+@keyframes spin {
   to { stroke-dashoffset: -100; }
 }
 </style>
