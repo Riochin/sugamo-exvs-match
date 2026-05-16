@@ -48,6 +48,9 @@ export function useScoreEntry(): UseScoreEntryReturn {
       isAbsent.value = scoreRecord?.absent ?? false
       if (scoreRecord?.submitted) {
         view.value = 'submitted'
+        const rec = scoreRecord as { wins: number; losses: number; submitted: boolean; absent: boolean; playerId: string }
+        wins.value = rec.wins
+        matches.value = rec.wins + rec.losses
       }
     } catch {
       // isAbsent のデフォルトは false のまま

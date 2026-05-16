@@ -21,7 +21,7 @@
       <button
         type="button"
         data-testid="edit-button"
-        class="mt-4 w-full py-2 rounded border border-main text-main text-sm font-bold hover:bg-main hover:text-white transition-colors"
+        class="mt-4 w-full py-3 rounded font-bold text-white bg-main hover:opacity-90 transition-colors"
         @click="editScore"
       >
         修正して再送信
@@ -39,7 +39,7 @@
         <div class="border-l border-gray-600" />
         <div>
           <p class="text-xs text-gray-400 mb-1">勝利数</p>
-          <p class="text-3xl font-bold text-accent">{{ wins }}</p>
+          <p class="text-3xl font-bold text-white">{{ wins }}</p>
         </div>
       </div>
       <div class="flex gap-3">
