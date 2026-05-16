@@ -1,10 +1,11 @@
 <template>
   <div class="p-4 text-white">
-    <!-- 残り Star 数ヘッダー -->
+    <!-- 残りスター数ヘッダー -->
     <div class="text-center mb-6">
-      <p class="text-sm text-gray-400 mb-1">配分できる残り Star</p>
-      <p data-testid="remaining-count" class="text-4xl font-bold text-yellow-400">
-        ★ {{ remaining }}
+      <p class="text-sm text-gray-400 mb-1">配れる残りスター</p>
+      <p data-testid="remaining-count" class="flex justify-center gap-2">
+        <StarIcon v-for="i in remaining" :key="i" :size="36" class="text-yellow-400" />
+        <StarIcon v-for="i in (3 - remaining)" :key="'e' + i" :size="36" class="text-gray-700" />
       </p>
     </div>
 
@@ -43,6 +44,7 @@
 
 <script setup lang="ts">
 import PlayerStarCard from './PlayerStarCard.vue'
+import StarIcon from './StarIcon.vue'
 import type { PlayerEntry } from '@/composables/useStarVoting'
 
 defineProps<{

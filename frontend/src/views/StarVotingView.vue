@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-[#090014] text-white overflow-y-auto">
     <div class="max-w-md mx-auto px-4 pt-8 pb-24">
       <h1 class="text-center text-2xl font-bold mb-6 tracking-widest text-yellow-400">
-        Star 投票
+        スター投票
       </h1>
 
       <!-- フェーズが STAR_VOTING でない場合 -->
@@ -54,6 +54,12 @@
       @confirm="handleConfirm"
       @cancel="showConfirm = false"
     />
+
+    <!-- 説明モーダル -->
+    <StarIntroModal
+      :visible="showIntroModal"
+      @close="showIntroModal = false"
+    />
   </div>
 </template>
 
@@ -64,6 +70,7 @@ import { useStarVoting } from '@/composables/useStarVoting'
 import { useEventStream } from '@/composables/useEventStream'
 import StarVotingPanel from '@/components/star/StarVotingPanel.vue'
 import StarConfirmDialog from '@/components/star/StarConfirmDialog.vue'
+import StarIntroModal from '@/components/star/StarIntroModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -85,6 +92,7 @@ const {
 const { currentPhase, starVoteUpdate, connect } = useEventStream()
 
 const showConfirm = ref(false)
+const showIntroModal = ref(true)
 
 const voteProgress = computed(() => starVoteUpdate.value)
 
