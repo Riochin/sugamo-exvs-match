@@ -79,10 +79,16 @@
         <!-- アクティブ大会 -->
         <template v-else>
           <div class="rounded border border-main bg-dark p-4">
-            <h2 class="mb-2 text-lg font-semibold">
-              大会中 — <span class="text-main">{{ activeEvent.phase }}</span>
-            </h2>
-            <p class="mb-4 text-sm text-gray-400">開催日時: {{ formatDate(activeEvent.heldAt) }}</p>
+            <div class="mb-4">
+              <div class="mb-1 flex items-center gap-2">
+                <h2 class="text-lg font-semibold">{{ activeEvent.name }}</h2>
+                <span class="rounded bg-main px-2 py-0.5 text-xs font-bold text-white">{{ activeEvent.phase }}</span>
+              </div>
+              <p class="text-sm text-gray-400">開催日時: {{ formatDate(activeEvent.heldAt) }}</p>
+              <p v-if="activeEvent.venue" class="text-sm text-gray-400">会場: {{ activeEvent.venue }}</p>
+              <p v-if="activeEvent.hasPromotionRelegation" class="mt-1 text-xs text-accent">昇格・降格あり</p>
+              <p v-if="activeEvent.description" class="mt-2 text-sm text-gray-300">{{ activeEvent.description }}</p>
+            </div>
 
             <!-- COLLECTING フェーズ: 参加者一覧 -->
             <ul v-if="activeEvent.phase === 'COLLECTING'" data-testid="scores-list" class="mb-6 space-y-2">
