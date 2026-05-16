@@ -31,7 +31,13 @@
         class="bg-dark rounded-lg p-4 mb-4"
       >
         <div class="flex items-center justify-between mb-3">
-          <h2 class="text-xl font-bold">{{ profile.name }}</h2>
+          <div class="flex items-center gap-2">
+            <h2 class="text-xl font-bold">{{ profile.name }}</h2>
+            <span
+              v-if="isOwnProfile && currentPlayer?.isAdmin"
+              class="text-xs font-semibold text-red-400 border border-red-500 rounded px-2 py-0.5"
+            >管理者</span>
+          </div>
           <span
             v-if="profile.team === 'FIRST'"
             class="text-xs font-semibold text-yellow-400 border border-yellow-400 rounded px-2 py-0.5"
@@ -64,6 +70,14 @@
         <h3 class="text-sm font-semibold text-gray-400 mb-3">直近5回の勝率推移</h3>
         <WinRateHistory :history="profile.winRateHistory" />
       </div>
+
+      <RouterLink
+        v-if="isOwnProfile && currentPlayer?.isAdmin"
+        to="/admin"
+        class="block w-full mt-4 py-3 rounded-lg bg-main text-white text-sm text-center"
+      >
+        管理画面へ
+      </RouterLink>
 
       <button
         v-if="isOwnProfile"
