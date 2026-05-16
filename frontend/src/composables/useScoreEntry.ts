@@ -3,15 +3,20 @@ import type { Ref } from 'vue'
 import { client } from '@/api/client'
 import { useAuth } from '@/composables/useAuth'
 
+export type ScoreEntryView = 'form' | 'confirming' | 'submitted'
+
 export interface UseScoreEntryReturn {
   matches: Ref<number | null>
   wins: Ref<number | null>
+  view: Readonly<Ref<ScoreEntryView>>
   isValid: Readonly<Ref<boolean>>
   isSubmitting: Readonly<Ref<boolean>>
-  submitted: Readonly<Ref<boolean>>
   isAbsent: Readonly<Ref<boolean>>
   error: Readonly<Ref<string | null>>
+  confirmScore(): void
+  cancelConfirm(): void
   submitScore(): Promise<void>
+  editScore(): void
 }
 
 export function useScoreEntry(): UseScoreEntryReturn {
@@ -19,8 +24,8 @@ export function useScoreEntry(): UseScoreEntryReturn {
 
   const matches = ref<number | null>(null)
   const wins = ref<number | null>(null)
+  const view = ref<ScoreEntryView>('form')
   const isSubmitting = ref(false)
-  const submitted = ref(false)
   const isAbsent = ref(false)
   const error = ref<string | null>(null)
 
@@ -42,11 +47,21 @@ export function useScoreEntry(): UseScoreEntryReturn {
       const scoreRecord = event.scores.find((s) => s.playerId === currentPlayer.value!.playerId)
       isAbsent.value = scoreRecord?.absent ?? false
       if (scoreRecord?.submitted) {
-        submitted.value = true
+        view.value = 'submitted'
       }
     } catch {
       // isAbsent のデフォルトは false のまま
     }
+  }
+
+  function confirmScore(): void {
+    if (!isValid.value) return
+    error.value = null
+    view.value = 'confirming'
+  }
+
+  function cancelConfirm(): void {
+    view.value = 'form'
   }
 
   async function submitScore(): Promise<void> {
@@ -61,16 +76,22 @@ export function useScoreEntry(): UseScoreEntryReturn {
         },
       })
       if (res.ok) {
-        submitted.value = true
+        view.value = 'submitted'
       } else {
         const data = await res.json()
         error.value = (data as { error?: string }).error ?? 'スコアの送信に失敗しました'
+        view.value = 'form'
       }
     } catch {
       error.value = 'ネットワークエラーが発生しました'
+      view.value = 'form'
     } finally {
       isSubmitting.value = false
     }
+  }
+
+  function editScore(): void {
+    view.value = 'form'
   }
 
   initAbsent()
@@ -78,11 +99,14 @@ export function useScoreEntry(): UseScoreEntryReturn {
   return {
     matches,
     wins,
+    view: readonly(view),
     isValid: readonly(isValid),
     isSubmitting: readonly(isSubmitting),
-    submitted: readonly(submitted),
     isAbsent: readonly(isAbsent),
     error: readonly(error),
+    confirmScore,
+    cancelConfirm,
     submitScore,
+    editScore,
   }
 }

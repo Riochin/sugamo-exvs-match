@@ -97,40 +97,76 @@ describe('useScoreEntry', () => {
     })
   })
 
+  describe('confirmScore / cancelConfirm', () => {
+    it('isValid のとき confirmScore() で view が confirming になる', async () => {
+      const { useScoreEntry } = await import('../useScoreEntry')
+      const { matches, wins, view, confirmScore } = useScoreEntry()
+
+      matches.value = 5
+      wins.value = 3
+      confirmScore()
+
+      expect(view.value).toBe('confirming')
+    })
+
+    it('isValid でないとき confirmScore() は view を変えない', async () => {
+      const { useScoreEntry } = await import('../useScoreEntry')
+      const { matches, wins, view, confirmScore } = useScoreEntry()
+
+      matches.value = 3
+      wins.value = 5
+      confirmScore()
+
+      expect(view.value).toBe('form')
+    })
+
+    it('cancelConfirm() で view が form に戻る', async () => {
+      const { useScoreEntry } = await import('../useScoreEntry')
+      const { matches, wins, view, confirmScore, cancelConfirm } = useScoreEntry()
+
+      matches.value = 5
+      wins.value = 3
+      confirmScore()
+      cancelConfirm()
+
+      expect(view.value).toBe('form')
+    })
+  })
+
   describe('submitScore', () => {
-    it('送信成功後に submitted = true となりフォームがロックされる', async () => {
+    it('送信成功後に view = submitted となる', async () => {
       mockScoresPostFn.mockResolvedValue({
         ok: true,
         json: async () => ({ completedCount: 1, totalCount: 3 }),
       })
 
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { matches, wins, submitted, submitScore } = useScoreEntry()
+      const { matches, wins, view, submitScore } = useScoreEntry()
 
       matches.value = 5
       wins.value = 3
 
       await submitScore()
 
-      expect(submitted.value).toBe(true)
+      expect(view.value).toBe('submitted')
       expect(mockScoresPostFn).toHaveBeenCalledWith({ json: { matches: 5, wins: 3 } })
     })
 
-    it('API エラー時に error ref にメッセージがセットされ submitted = false のまま', async () => {
+    it('API エラー時に error ref にメッセージがセットされ view = form に戻る', async () => {
       mockScoresPostFn.mockResolvedValue({
         ok: false,
         json: async () => ({ error: 'PHASE_NOT_COLLECTING' }),
       })
 
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { matches, wins, submitted, error, submitScore } = useScoreEntry()
+      const { matches, wins, view, error, submitScore } = useScoreEntry()
 
       matches.value = 5
       wins.value = 3
 
       await submitScore()
 
-      expect(submitted.value).toBe(false)
+      expect(view.value).toBe('form')
       expect(error.value).not.toBeNull()
     })
 
@@ -177,6 +213,29 @@ describe('useScoreEntry', () => {
       await promise
 
       expect(isSubmitting.value).toBe(false)
+    })
+  })
+
+  describe('editScore', () => {
+    it('submitted 後に editScore() で view = form に戻り入力値は保持される', async () => {
+      mockScoresPostFn.mockResolvedValue({
+        ok: true,
+        json: async () => ({ completedCount: 1, totalCount: 3 }),
+      })
+
+      const { useScoreEntry } = await import('../useScoreEntry')
+      const { matches, wins, view, submitScore, editScore } = useScoreEntry()
+
+      matches.value = 5
+      wins.value = 3
+      await submitScore()
+      expect(view.value).toBe('submitted')
+
+      editScore()
+
+      expect(view.value).toBe('form')
+      expect(matches.value).toBe(5)
+      expect(wins.value).toBe(3)
     })
   })
 
@@ -239,8 +298,8 @@ describe('useScoreEntry', () => {
     })
   })
 
-  describe('submitted の初期化（画面更新後の復元）', () => {
-    it('submitted=true のスコアレコードがあるとき submitted = true に初期化される', async () => {
+  describe('view の初期化（画面更新後の復元）', () => {
+    it('submitted=true のスコアレコードがあるとき view = submitted に初期化される', async () => {
       mockGetActiveFn.mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -256,14 +315,14 @@ describe('useScoreEntry', () => {
       })
 
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { submitted } = useScoreEntry()
+      const { view } = useScoreEntry()
 
       await flushPromises()
 
-      expect(submitted.value).toBe(true)
+      expect(view.value).toBe('submitted')
     })
 
-    it('submitted=false のスコアレコードがあるとき submitted = false のまま', async () => {
+    it('submitted=false のスコアレコードがあるとき view = form のまま', async () => {
       mockGetActiveFn.mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -279,14 +338,14 @@ describe('useScoreEntry', () => {
       })
 
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { submitted } = useScoreEntry()
+      const { view } = useScoreEntry()
 
       await flushPromises()
 
-      expect(submitted.value).toBe(false)
+      expect(view.value).toBe('form')
     })
 
-    it('スコアレコードが自プレイヤー以外のみのとき submitted = false のまま', async () => {
+    it('スコアレコードが自プレイヤー以外のみのとき view = form のまま', async () => {
       mockGetActiveFn.mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -302,11 +361,11 @@ describe('useScoreEntry', () => {
       })
 
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { submitted } = useScoreEntry()
+      const { view } = useScoreEntry()
 
       await flushPromises()
 
-      expect(submitted.value).toBe(false)
+      expect(view.value).toBe('form')
     })
   })
 })
