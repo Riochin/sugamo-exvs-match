@@ -66,8 +66,15 @@
           </span>
         </div>
 
-        <!-- 称号・メイン機体 -->
+        <!-- 獲得スター・称号・メイン機体 -->
         <div class="text-sm space-y-2 mt-3 px-4 pb-4">
+          <div class="flex items-center gap-1">
+            <span class="text-gray-500 mr-2">獲得スター</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+            <span class="text-yellow-400 font-semibold">{{ profile.totalStarsReceived }}</span>
+          </div>
           <div>
             <span class="text-gray-500 mr-2">称号</span>
             <span :class="profile.title === null ? 'text-gray-400' : ''">

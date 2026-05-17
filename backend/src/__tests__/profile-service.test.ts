@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { profileService } from '../services/profile-service.js'
 
@@ -62,6 +63,14 @@ function mockScoresQuery(scoreRows: ReturnType<typeof makeScoreRow>[]) {
   }
 }
 
+function mockStarsQuery(total: string | null) {
+  return {
+    from: vi.fn().mockReturnValue({
+      where: vi.fn().mockResolvedValue([{ total }]),
+    }),
+  }
+}
+
 describe('ProfileService', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -79,6 +88,7 @@ describe('ProfileService', () => {
             )
           ) as any
         )
+        .mockReturnValueOnce(mockStarsQuery('10') as any)
 
       const result = await profileService.getProfile('p1')
 
@@ -105,6 +115,7 @@ describe('ProfileService', () => {
             makeScoreRow({ eventId: 'e2', heldAt, wins: 0, losses: 0, absent: true }),
           ]) as any
         )
+        .mockReturnValueOnce(mockStarsQuery('5') as any)
 
       const result = await profileService.getProfile('p1')
 
@@ -134,6 +145,7 @@ describe('ProfileService', () => {
             makeScoreRow({ eventId: 'e2' }),
           ]) as any
         )
+        .mockReturnValueOnce(mockStarsQuery('3') as any)
 
       const result = await profileService.getProfile('p1')
 
@@ -158,6 +170,7 @@ describe('ProfileService', () => {
             makeScoreRow({ eventId: 'e1', wins: 0, losses: 0, absent: false }),
           ]) as any
         )
+        .mockReturnValueOnce(mockStarsQuery('0') as any)
 
       const result = await profileService.getProfile('p1')
 
@@ -167,6 +180,30 @@ describe('ProfileService', () => {
         wins: 0,
         losses: 0,
       })
+    })
+
+    it('starが null のとき totalStarsReceived が 0 を返す', async () => {
+      const { db } = await import('../db/client.js')
+      vi.mocked(db.select)
+        .mockReturnValueOnce(mockPlayerQuery(basePlayer) as any)
+        .mockReturnValueOnce(mockScoresQuery([]) as any)
+        .mockReturnValueOnce(mockStarsQuery(null) as any)
+
+      const result = await profileService.getProfile('p1')
+
+      expect(result!.totalStarsReceived).toBe(0)
+    })
+
+    it('star が複数件あるとき totalStarsReceived が合計値を返す', async () => {
+      const { db } = await import('../db/client.js')
+      vi.mocked(db.select)
+        .mockReturnValueOnce(mockPlayerQuery(basePlayer) as any)
+        .mockReturnValueOnce(mockScoresQuery([]) as any)
+        .mockReturnValueOnce(mockStarsQuery('7') as any)
+
+      const result = await profileService.getProfile('p1')
+
+      expect(result!.totalStarsReceived).toBe(7)
     })
   })
 })

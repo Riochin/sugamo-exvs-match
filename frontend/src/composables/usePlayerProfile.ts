@@ -22,6 +22,7 @@ type PlayerProfileResponse = {
   title: string | null
   mainUnit: string | null
   iconUrl: string | null
+  totalStarsReceived: number
   winRateHistory: readonly WinRateEntry[]
 }
 

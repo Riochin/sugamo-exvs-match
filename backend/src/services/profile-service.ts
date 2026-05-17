@@ -1,6 +1,6 @@
-import { and, desc, eq } from 'drizzle-orm'
+import { and, desc, eq, sum } from 'drizzle-orm'
 import { db } from '../db/client.js'
-import { events, players, scores } from '../db/schema.js'
+import { events, players, scores, stars } from '../db/schema.js'
 
 type EventMeta = {
   eventId: string
@@ -22,6 +22,7 @@ export type PlayerProfileResponse = {
   title: string | null
   mainUnit: string | null
   iconUrl: string | null
+  totalStarsReceived: number
   winRateHistory: WinRateEntry[]
 }
 
@@ -61,6 +62,13 @@ export const profileService = {
       .orderBy(desc(events.heldAt))
       .limit(5)
 
+    const [starRow] = await db
+      .select({ total: sum(stars.count) })
+      .from(stars)
+      .where(eq(stars.toPlayerId, playerId))
+
+    const totalStarsReceived = Number(starRow?.total ?? 0)
+
     const winRateHistory: WinRateEntry[] = scoreRows.map((row) => {
       const meta: EventMeta = {
         eventId: row.eventId,
@@ -85,6 +93,7 @@ export const profileService = {
       title: player.title ?? null,
       mainUnit: player.mainUnit ?? null,
       iconUrl: player.iconUrl ?? null,
+      totalStarsReceived,
       winRateHistory,
     }
   },
