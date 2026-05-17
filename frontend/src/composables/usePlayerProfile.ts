@@ -2,20 +2,18 @@ import { ref, readonly, watchEffect } from 'vue'
 import type { Ref } from 'vue'
 import { client } from '@/api/client'
 
-type WinRateEntry =
-  | {
-      eventId: string
-      heldAt: string
-      winRate: number
-      wins: number
-      losses: number
-      absent: false
-    }
-  | {
-      eventId: string
-      heldAt: string
-      absent: true
-    }
+type EventMeta = {
+  eventId: string
+  heldAt: string
+  name: string
+  venue: string | null
+  description: string | null
+  hasPromotionRelegation: boolean
+}
+
+export type WinRateEntry =
+  | (EventMeta & { winRate: number; wins: number; losses: number; absent: false })
+  | (EventMeta & { absent: true })
 
 type PlayerProfileResponse = {
   id: string

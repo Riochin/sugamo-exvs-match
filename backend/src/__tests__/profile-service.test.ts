@@ -18,6 +18,10 @@ const basePlayer = {
 function makeScoreRow(overrides: Partial<{
   eventId: string
   heldAt: Date
+  name: string
+  venue: string | null
+  description: string | null
+  hasPromotionRelegation: boolean
   wins: number
   losses: number
   absent: boolean
@@ -25,6 +29,10 @@ function makeScoreRow(overrides: Partial<{
   return {
     eventId: 'e1',
     heldAt: new Date('2026-01-01T00:00:00.000Z'),
+    name: '大会1',
+    venue: null,
+    description: null,
+    hasPromotionRelegation: false,
     wins: 3,
     losses: 2,
     absent: false,
@@ -105,6 +113,10 @@ describe('ProfileService', () => {
       expect(absentEntry).toEqual({
         eventId: 'e2',
         heldAt: heldAt.toISOString(),
+        name: '大会1',
+        venue: null,
+        description: null,
+        hasPromotionRelegation: false,
         absent: true,
       })
       expect(absentEntry).not.toHaveProperty('winRate')

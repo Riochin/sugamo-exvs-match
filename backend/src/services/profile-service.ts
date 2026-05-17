@@ -2,20 +2,18 @@ import { and, desc, eq } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import { events, players, scores } from '../db/schema.js'
 
+type EventMeta = {
+  eventId: string
+  heldAt: string
+  name: string
+  venue: string | null
+  description: string | null
+  hasPromotionRelegation: boolean
+}
+
 type WinRateEntry =
-  | {
-      eventId: string
-      heldAt: string
-      winRate: number
-      wins: number
-      losses: number
-      absent: false
-    }
-  | {
-      eventId: string
-      heldAt: string
-      absent: true
-    }
+  | (EventMeta & { winRate: number; wins: number; losses: number; absent: false })
+  | (EventMeta & { absent: true })
 
 export type PlayerProfileResponse = {
   id: string
@@ -49,6 +47,10 @@ export const profileService = {
       .select({
         eventId: scores.eventId,
         heldAt: events.heldAt,
+        name: events.name,
+        venue: events.venue,
+        description: events.description,
+        hasPromotionRelegation: events.hasPromotionRelegation,
         wins: scores.wins,
         losses: scores.losses,
         absent: scores.absent,
@@ -60,23 +62,20 @@ export const profileService = {
       .limit(5)
 
     const winRateHistory: WinRateEntry[] = scoreRows.map((row) => {
+      const meta: EventMeta = {
+        eventId: row.eventId,
+        heldAt: row.heldAt.toISOString(),
+        name: row.name,
+        venue: row.venue ?? null,
+        description: row.description ?? null,
+        hasPromotionRelegation: row.hasPromotionRelegation,
+      }
       if (row.absent) {
-        return {
-          eventId: row.eventId,
-          heldAt: row.heldAt.toISOString(),
-          absent: true,
-        }
+        return { ...meta, absent: true }
       }
       const total = row.wins + row.losses
       const winRate = total > 0 ? Math.round((row.wins / total) * 1000) / 10 : 0.0
-      return {
-        eventId: row.eventId,
-        heldAt: row.heldAt.toISOString(),
-        winRate,
-        wins: row.wins,
-        losses: row.losses,
-        absent: false,
-      }
+      return { ...meta, winRate, wins: row.wins, losses: row.losses, absent: false }
     })
 
     return {
