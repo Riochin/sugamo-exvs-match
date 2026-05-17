@@ -23,6 +23,8 @@ type PlayerProfileResponse = {
   mainUnit: string | null
   iconUrl: string | null
   totalStarsReceived: number
+  biggestFan: { name: string; totalStars: number } | null
+  allTimeRecord: { totalWins: number; totalLosses: number; winRate: number }
   winRateHistory: readonly WinRateEntry[]
 }
 

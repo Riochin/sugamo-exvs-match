@@ -75,6 +75,11 @@
             </svg>
             <span class="text-yellow-400 font-semibold">{{ profile.totalStarsReceived }}</span>
           </div>
+          <div v-if="profile.biggestFan" class="flex items-center gap-1">
+            <span class="text-gray-500 mr-2">最大のファン</span>
+            <span>{{ profile.biggestFan.name }}</span>
+            <span class="text-yellow-400 text-xs ml-1">(★{{ profile.biggestFan.totalStars }})</span>
+          </div>
           <div>
             <span class="text-gray-500 mr-2">称号</span>
             <span :class="profile.title === null ? 'text-gray-400' : ''">
@@ -87,6 +92,26 @@
               {{ profile.mainUnit ?? '未設定' }}
             </span>
           </div>
+        </div>
+      </div>
+
+      <!-- 通算戦績 -->
+      <div
+        data-testid="all-time-record"
+        class="bg-dark rounded-lg p-4 mb-4"
+      >
+        <h3 class="text-sm font-semibold text-gray-400 mb-3">通算戦績</h3>
+        <div class="flex items-baseline justify-center gap-4 py-1">
+          <div>
+            <span class="text-4xl font-bold">{{ profile.allTimeRecord.totalWins + profile.allTimeRecord.totalLosses }}</span>
+            <span class="text-lg text-gray-400 ml-0.5">戦</span>
+          </div>
+          <div>
+            <span class="text-4xl font-bold">{{ profile.allTimeRecord.totalWins }}</span>
+            <span class="text-lg text-gray-400 ml-0.5">勝</span>
+          </div>
+          <div class="text-gray-600">|</div>
+          <div class="text-4xl font-bold text-yellow-400">{{ profile.allTimeRecord.winRate }}<span class="text-lg font-normal text-gray-400">%</span></div>
         </div>
       </div>
 

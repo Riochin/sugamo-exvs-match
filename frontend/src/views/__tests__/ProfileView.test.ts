@@ -14,8 +14,14 @@ type PlayerProfileResponse = {
   team: 'FIRST' | 'SECOND'
   title: string | null
   mainUnit: string | null
+  iconUrl: string | null
+  totalStarsReceived: number
+  biggestFan: { name: string; totalStars: number } | null
+  allTimeRecord: { totalWins: number; totalLosses: number; winRate: number }
   winRateHistory: WinRateEntry[]
 }
+
+const defaultAllTimeRecord = { totalWins: 0, totalLosses: 0, winRate: 0 }
 
 const mockProfile = ref<PlayerProfileResponse | null>(null)
 const mockIsLoading = ref(false)
@@ -103,6 +109,10 @@ describe('ProfileView', () => {
       team: 'FIRST',
       title: '勇者',
       mainUnit: 'ユニコーンガンダム',
+      iconUrl: null,
+      totalStarsReceived: 0,
+      biggestFan: null,
+      allTimeRecord: defaultAllTimeRecord,
       winRateHistory: [],
     }
 
@@ -125,6 +135,10 @@ describe('ProfileView', () => {
       team: 'FIRST',
       title: null,
       mainUnit: null,
+      iconUrl: null,
+      totalStarsReceived: 0,
+      biggestFan: null,
+      allTimeRecord: defaultAllTimeRecord,
       winRateHistory: [],
     }
 
@@ -143,6 +157,10 @@ describe('ProfileView', () => {
       team: 'FIRST',
       title: null,
       mainUnit: null,
+      iconUrl: null,
+      totalStarsReceived: 0,
+      biggestFan: null,
+      allTimeRecord: defaultAllTimeRecord,
       winRateHistory: [],
     }
 
@@ -161,6 +179,10 @@ describe('ProfileView', () => {
       team: 'SECOND',
       title: null,
       mainUnit: null,
+      iconUrl: null,
+      totalStarsReceived: 0,
+      biggestFan: null,
+      allTimeRecord: defaultAllTimeRecord,
       winRateHistory: [],
     }
 
@@ -179,6 +201,10 @@ describe('ProfileView', () => {
       team: 'FIRST',
       title: null,
       mainUnit: null,
+      iconUrl: null,
+      totalStarsReceived: 0,
+      biggestFan: null,
+      allTimeRecord: defaultAllTimeRecord,
       winRateHistory: [
         { eventId: 'e1', heldAt: '2026-01-01T00:00:00Z', absent: true },
       ],
