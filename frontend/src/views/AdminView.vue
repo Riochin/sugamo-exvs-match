@@ -3,7 +3,7 @@
     <h1 class="mb-6 text-xl font-bold text-main">管理者ダッシュボード</h1>
 
     <div v-if="isInitialLoading" class="flex justify-center py-16">
-      <LoadingSpinner label="データを取得中..." />
+      <LoadingSpinner label="データを取得中..." variant="accent" />
     </div>
 
     <template v-else-if="currentPlayer?.isAdmin">

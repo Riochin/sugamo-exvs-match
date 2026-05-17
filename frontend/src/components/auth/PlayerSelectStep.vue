@@ -3,7 +3,7 @@
     <h2 class="text-center text-lg font-bold text-white">プレイヤーを選択</h2>
 
     <div v-if="isLoading" data-testid="loading" class="flex justify-center py-8">
-      <LoadingSpinner label="プレイヤー一覧を取得中..." />
+      <LoadingSpinner label="プレイヤー一覧を取得中..." variant="accent" />
     </div>
 
     <div v-else-if="error !== null">

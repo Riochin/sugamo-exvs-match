@@ -4,7 +4,7 @@
       :width="size"
       :height="size * 0.55"
       :viewBox="viewBox"
-      class="text-main"
+      :class="colorClass"
     >
       <!-- track -->
       <path
@@ -26,7 +26,7 @@
         pathLength="100"
       />
     </svg>
-    <p v-if="label" class="text-main text-sm">{{ label }}</p>
+    <p v-if="label" :class="[colorClass, 'text-sm']">{{ label }}</p>
   </div>
 </template>
 
@@ -37,11 +37,15 @@ const props = withDefaults(defineProps<{
   size?: number
   label?: string
   strokeWidth?: number
+  variant?: 'default' | 'accent'
 }>(), {
   size: 52,
   label: '読み込み中...',
   strokeWidth: 22,
+  variant: 'default',
 })
+
+const colorClass = computed(() => props.variant === 'accent' ? 'text-accent' : 'text-main')
 
 const PATH = 'M 0,0 C 0,-30 30,-50 50,-50 C 75,-50 90,-30 90,0 C 90,30 75,50 50,50 C 30,50 0,30 0,0 C 0,-30 -30,-50 -50,-50 C -75,-50 -90,-30 -90,0 C -90,30 -75,50 -50,50 C -30,50 0,30 0,0'
 

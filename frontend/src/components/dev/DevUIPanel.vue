@@ -23,6 +23,11 @@
           <div class="text-gray-500">strokeWidth=14</div>
           <LoadingSpinner :size="32" label="" />
           <div class="text-gray-500">size=32, label=なし</div>
+          <div class="mt-1 w-full border-t border-white/10" />
+          <div class="text-gray-400">variant=accent（暗背景用）</div>
+          <LoadingSpinner :size="52" variant="accent" />
+          <LoadingSpinner :size="32" label="" variant="accent" />
+          <div class="text-gray-500">size=32, label=なし</div>
         </div>
       </div>
     </div>
