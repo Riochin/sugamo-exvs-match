@@ -31,12 +31,19 @@
         class="bg-dark rounded-lg p-4 mb-4"
       >
         <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <h2 class="text-xl font-bold">{{ profile.name }}</h2>
-            <span
-              v-if="isOwnProfile && currentPlayer?.isAdmin"
-              class="text-xs font-semibold text-red-400 border border-red-500 rounded px-2 py-0.5"
-            >管理者</span>
+          <div class="flex items-center gap-3">
+            <img
+              :src="profile.iconUrl ?? '/icons/default.png'"
+              class="w-16 h-16 rounded-full object-cover flex-shrink-0"
+              :alt="profile.name"
+            />
+            <div class="flex items-center gap-2">
+              <h2 class="text-xl font-bold">{{ profile.name }}</h2>
+              <span
+                v-if="isOwnProfile && currentPlayer?.isAdmin"
+                class="text-xs font-semibold text-red-400 border border-red-500 rounded px-2 py-0.5"
+              >管理者</span>
+            </div>
           </div>
           <span
             v-if="profile.team === 'FIRST'"

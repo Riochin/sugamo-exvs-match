@@ -9,6 +9,7 @@ type PlayerListItem = {
   title: string | null
   mainUnit: string | null
   createdAt: string
+  iconUrl: string | null
 }
 
 export interface UseGroupProfileReturn {

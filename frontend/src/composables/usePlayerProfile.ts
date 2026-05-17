@@ -23,6 +23,7 @@ type PlayerProfileResponse = {
   team: 'FIRST' | 'SECOND'
   title: string | null
   mainUnit: string | null
+  iconUrl: string | null
   winRateHistory: readonly WinRateEntry[]
 }
 
@@ -58,7 +59,7 @@ export function usePlayerProfile(playerId: Ref<string>): UsePlayerProfileReturn 
         error.value = 'データの取得に失敗しました'
         return
       }
-      profile.value = (await res.json()) as PlayerProfileResponse
+      profile.value = (await res.json()) as unknown as PlayerProfileResponse
     } catch {
       error.value = 'ネットワークエラーが発生しました'
     } finally {
