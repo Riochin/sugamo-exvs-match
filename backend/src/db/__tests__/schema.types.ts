@@ -10,6 +10,7 @@ const _player: Player = {
   mainUnit: null,
   createdAt: new Date(),
   isAdmin: false,
+  iconUrl: null,
 }
 
 // team enum の検証
@@ -22,6 +23,7 @@ const _player2: Player = {
   mainUnit: 'ユニット名',
   createdAt: new Date(),
   isAdmin: true,
+  iconUrl: '/icons/malhat.png',
 }
 
 // Event 型の検証
