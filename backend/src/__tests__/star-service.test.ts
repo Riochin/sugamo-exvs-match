@@ -247,10 +247,12 @@ describe('StarService', () => {
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
           innerJoin: vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue([
-              { playerId: 'p2', playerName: 'Player2' },
-              { playerId: 'p3', playerName: 'Player3' },
-            ]),
+            where: vi.fn().mockReturnValue({
+              orderBy: vi.fn().mockResolvedValue([
+                { playerId: 'p2', playerName: 'Player2' },
+                { playerId: 'p3', playerName: 'Player3' },
+              ]),
+            }),
           }),
         }),
       } as any)
