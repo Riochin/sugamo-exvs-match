@@ -13,6 +13,7 @@ export const playersRoute = new Hono()
       title: players.title,
       mainUnit: players.mainUnit,
       createdAt: players.createdAt,
+      iconUrl: players.iconUrl,
     }).from(players)
     return c.json(rows)
   })

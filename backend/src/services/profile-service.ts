@@ -23,6 +23,7 @@ export type PlayerProfileResponse = {
   team: 'FIRST' | 'SECOND'
   title: string | null
   mainUnit: string | null
+  iconUrl: string | null
   winRateHistory: WinRateEntry[]
 }
 
@@ -35,6 +36,7 @@ export const profileService = {
         team: players.team,
         title: players.title,
         mainUnit: players.mainUnit,
+        iconUrl: players.iconUrl,
       })
       .from(players)
       .where(eq(players.id, playerId))
@@ -83,6 +85,7 @@ export const profileService = {
       team: player.team,
       title: player.title ?? null,
       mainUnit: player.mainUnit ?? null,
+      iconUrl: player.iconUrl ?? null,
       winRateHistory,
     }
   },
