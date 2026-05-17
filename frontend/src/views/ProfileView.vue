@@ -55,7 +55,7 @@
             </span>
           </div>
           <div>
-            <span class="text-gray-500 mr-2">主使用機体</span>
+            <span class="text-gray-500 mr-2">メイン機体</span>
             <span :class="profile.mainUnit === null ? 'text-gray-400' : ''">
               {{ profile.mainUnit ?? '未設定' }}
             </span>

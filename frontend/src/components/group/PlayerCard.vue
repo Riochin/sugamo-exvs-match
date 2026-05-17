@@ -24,7 +24,7 @@
         </span>
       </div>
       <div>
-        <span class="text-gray-500 mr-1">主使用機体</span>
+        <span class="text-gray-500 mr-1">メイン機体</span>
         <span :class="player.mainUnit === null ? 'text-gray-400' : ''">
           {{ player.mainUnit ?? '未設定' }}
         </span>
