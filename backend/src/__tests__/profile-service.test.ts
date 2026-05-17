@@ -71,6 +71,30 @@ function mockStarsQuery(total: string | null) {
   }
 }
 
+function mockBiggestFanQuery(result: { name: string; total: string | null } | null) {
+  return {
+    from: vi.fn().mockReturnValue({
+      innerJoin: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          groupBy: vi.fn().mockReturnValue({
+            orderBy: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue(result ? [result] : []),
+            }),
+          }),
+        }),
+      }),
+    }),
+  }
+}
+
+function mockAllTimeQuery(totalWins: string | null, totalLosses: string | null) {
+  return {
+    from: vi.fn().mockReturnValue({
+      where: vi.fn().mockResolvedValue([{ totalWins, totalLosses }]),
+    }),
+  }
+}
+
 describe('ProfileService', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -89,6 +113,8 @@ describe('ProfileService', () => {
           ) as any
         )
         .mockReturnValueOnce(mockStarsQuery('10') as any)
+        .mockReturnValueOnce(mockBiggestFanQuery({ name: 'Bob', total: '5' }) as any)
+        .mockReturnValueOnce(mockAllTimeQuery('10', '5') as any)
 
       const result = await profileService.getProfile('p1')
 
@@ -116,6 +142,8 @@ describe('ProfileService', () => {
           ]) as any
         )
         .mockReturnValueOnce(mockStarsQuery('5') as any)
+        .mockReturnValueOnce(mockBiggestFanQuery({ name: 'Bob', total: '5' }) as any)
+        .mockReturnValueOnce(mockAllTimeQuery('3', '2') as any)
 
       const result = await profileService.getProfile('p1')
 
@@ -146,6 +174,8 @@ describe('ProfileService', () => {
           ]) as any
         )
         .mockReturnValueOnce(mockStarsQuery('3') as any)
+        .mockReturnValueOnce(mockBiggestFanQuery(null) as any)
+        .mockReturnValueOnce(mockAllTimeQuery('2', '1') as any)
 
       const result = await profileService.getProfile('p1')
 
@@ -171,6 +201,8 @@ describe('ProfileService', () => {
           ]) as any
         )
         .mockReturnValueOnce(mockStarsQuery('0') as any)
+        .mockReturnValueOnce(mockBiggestFanQuery(null) as any)
+        .mockReturnValueOnce(mockAllTimeQuery('0', '0') as any)
 
       const result = await profileService.getProfile('p1')
 
@@ -188,6 +220,8 @@ describe('ProfileService', () => {
         .mockReturnValueOnce(mockPlayerQuery(basePlayer) as any)
         .mockReturnValueOnce(mockScoresQuery([]) as any)
         .mockReturnValueOnce(mockStarsQuery(null) as any)
+        .mockReturnValueOnce(mockBiggestFanQuery(null) as any)
+        .mockReturnValueOnce(mockAllTimeQuery(null, null) as any)
 
       const result = await profileService.getProfile('p1')
 
@@ -200,10 +234,68 @@ describe('ProfileService', () => {
         .mockReturnValueOnce(mockPlayerQuery(basePlayer) as any)
         .mockReturnValueOnce(mockScoresQuery([]) as any)
         .mockReturnValueOnce(mockStarsQuery('7') as any)
+        .mockReturnValueOnce(mockBiggestFanQuery(null) as any)
+        .mockReturnValueOnce(mockAllTimeQuery(null, null) as any)
 
       const result = await profileService.getProfile('p1')
 
       expect(result!.totalStarsReceived).toBe(7)
+    })
+
+    it('biggestFan がいるとき name と totalStars が返る', async () => {
+      const { db } = await import('../db/client.js')
+      vi.mocked(db.select)
+        .mockReturnValueOnce(mockPlayerQuery(basePlayer) as any)
+        .mockReturnValueOnce(mockScoresQuery([]) as any)
+        .mockReturnValueOnce(mockStarsQuery('10') as any)
+        .mockReturnValueOnce(mockBiggestFanQuery({ name: 'Bob', total: '6' }) as any)
+        .mockReturnValueOnce(mockAllTimeQuery(null, null) as any)
+
+      const result = await profileService.getProfile('p1')
+
+      expect(result!.biggestFan).toEqual({ name: 'Bob', totalStars: 6 })
+    })
+
+    it('スターがないとき biggestFan が null になる', async () => {
+      const { db } = await import('../db/client.js')
+      vi.mocked(db.select)
+        .mockReturnValueOnce(mockPlayerQuery(basePlayer) as any)
+        .mockReturnValueOnce(mockScoresQuery([]) as any)
+        .mockReturnValueOnce(mockStarsQuery('0') as any)
+        .mockReturnValueOnce(mockBiggestFanQuery(null) as any)
+        .mockReturnValueOnce(mockAllTimeQuery(null, null) as any)
+
+      const result = await profileService.getProfile('p1')
+
+      expect(result!.biggestFan).toBeNull()
+    })
+
+    it('通算成績が正しく集計される', async () => {
+      const { db } = await import('../db/client.js')
+      vi.mocked(db.select)
+        .mockReturnValueOnce(mockPlayerQuery(basePlayer) as any)
+        .mockReturnValueOnce(mockScoresQuery([]) as any)
+        .mockReturnValueOnce(mockStarsQuery('0') as any)
+        .mockReturnValueOnce(mockBiggestFanQuery(null) as any)
+        .mockReturnValueOnce(mockAllTimeQuery('7', '3') as any)
+
+      const result = await profileService.getProfile('p1')
+
+      expect(result!.allTimeRecord).toEqual({ totalWins: 7, totalLosses: 3, winRate: 70.0 })
+    })
+
+    it('通算成績が 0-0 のとき winRate が 0.0 になる', async () => {
+      const { db } = await import('../db/client.js')
+      vi.mocked(db.select)
+        .mockReturnValueOnce(mockPlayerQuery(basePlayer) as any)
+        .mockReturnValueOnce(mockScoresQuery([]) as any)
+        .mockReturnValueOnce(mockStarsQuery('0') as any)
+        .mockReturnValueOnce(mockBiggestFanQuery(null) as any)
+        .mockReturnValueOnce(mockAllTimeQuery(null, null) as any)
+
+      const result = await profileService.getProfile('p1')
+
+      expect(result!.allTimeRecord).toEqual({ totalWins: 0, totalLosses: 0, winRate: 0.0 })
     })
   })
 })

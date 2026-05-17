@@ -23,6 +23,8 @@ export type PlayerProfileResponse = {
   mainUnit: string | null
   iconUrl: string | null
   totalStarsReceived: number
+  biggestFan: { name: string; totalStars: number } | null
+  allTimeRecord: { totalWins: number; totalLosses: number; winRate: number }
   winRateHistory: WinRateEntry[]
 }
 
@@ -69,6 +71,33 @@ export const profileService = {
 
     const totalStarsReceived = Number(starRow?.total ?? 0)
 
+    const [fanRow] = await db
+      .select({ name: players.name, total: sum(stars.count) })
+      .from(stars)
+      .innerJoin(players, eq(stars.fromPlayerId, players.id))
+      .where(eq(stars.toPlayerId, playerId))
+      .groupBy(stars.fromPlayerId, players.name)
+      .orderBy(desc(sum(stars.count)))
+      .limit(1)
+
+    const biggestFan = fanRow
+      ? { name: fanRow.name, totalStars: Number(fanRow.total ?? 0) }
+      : null
+
+    const [allTimeRow] = await db
+      .select({ totalWins: sum(scores.wins), totalLosses: sum(scores.losses) })
+      .from(scores)
+      .where(and(eq(scores.playerId, playerId), eq(scores.submitted, true), eq(scores.absent, false)))
+
+    const totalWins = Number(allTimeRow?.totalWins ?? 0)
+    const totalLosses = Number(allTimeRow?.totalLosses ?? 0)
+    const allTimeTotal = totalWins + totalLosses
+    const allTimeRecord = {
+      totalWins,
+      totalLosses,
+      winRate: allTimeTotal > 0 ? Math.round((totalWins / allTimeTotal) * 1000) / 10 : 0.0,
+    }
+
     const winRateHistory: WinRateEntry[] = scoreRows.map((row) => {
       const meta: EventMeta = {
         eventId: row.eventId,
@@ -94,6 +123,8 @@ export const profileService = {
       mainUnit: player.mainUnit ?? null,
       iconUrl: player.iconUrl ?? null,
       totalStarsReceived,
+      biggestFan,
+      allTimeRecord,
       winRateHistory,
     }
   },
