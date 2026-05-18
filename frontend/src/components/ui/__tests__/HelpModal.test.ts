@@ -40,4 +40,12 @@ describe('HelpModal', () => {
     await wrapper.find('button').trigger('click')
     expect(wrapper.emitted('close')).toBeTruthy()
   })
+
+  it('背景（バックドロップ）クリックで close イベントが発火する', async () => {
+    const wrapper = mount(HelpModal, {
+      props: { visible: true, title: 'テスト' },
+    })
+    await wrapper.find('[data-testid="help-modal"]').trigger('click')
+    expect(wrapper.emitted('close')).toBeTruthy()
+  })
 })
