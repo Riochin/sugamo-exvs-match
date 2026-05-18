@@ -217,4 +217,15 @@ describe('ProfileView', () => {
 
     expect(wrapper.find('[data-testid="win-rate-history"]').exists()).toBe(true)
   })
+
+  it('「?」ボタンクリックでヘルプモーダルが表示される', async () => {
+    const router = createTestRouter()
+    await router.push('/profile/p1')
+    await router.isReady()
+    const wrapper = mount(ProfileView, { global: { plugins: [router] } })
+
+    expect(wrapper.find('[data-testid="help-modal"]').exists()).toBe(false)
+    await wrapper.find('[data-testid="help-button"]').trigger('click')
+    expect(wrapper.find('[data-testid="help-modal"]').exists()).toBe(true)
+  })
 })

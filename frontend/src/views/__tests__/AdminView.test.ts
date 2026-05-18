@@ -260,4 +260,15 @@ describe('AdminView', () => {
 
     expect(wrapper.find('[data-testid="admin-content"]').exists()).toBe(false)
   })
+
+  it('「?」ボタンクリックでヘルプモーダルが表示される', async () => {
+    mockCurrentPlayer.value = { playerId: 'p1', name: 'Admin', isAdmin: true }
+    const router = createTestRouter()
+    const wrapper = mount(AdminView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="help-modal"]').exists()).toBe(false)
+    await wrapper.find('[data-testid="help-button"]').trigger('click')
+    expect(wrapper.find('[data-testid="help-modal"]').exists()).toBe(true)
+  })
 })

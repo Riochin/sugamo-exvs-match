@@ -260,4 +260,20 @@ describe('StarVotingView', () => {
     await flushPromises()
     expect(wrapper.find('[data-testid="star-confirm-dialog"]').exists()).toBe(false)
   })
+
+  it('「?」ボタンクリックで StarIntroModal が表示される', async () => {
+    const router = createTestRouter()
+    await router.isReady()
+    const wrapper = mount(StarVotingView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    // 最初に表示されているモーダルを閉じる
+    const closeBtn = wrapper.find('[data-testid="star-intro-modal"] button')
+    await closeBtn.trigger('click')
+    expect(wrapper.find('[data-testid="star-intro-modal"]').exists()).toBe(false)
+
+    // ?ボタンで再表示
+    await wrapper.find('[data-testid="help-button"]').trigger('click')
+    expect(wrapper.find('[data-testid="star-intro-modal"]').exists()).toBe(true)
+  })
 })

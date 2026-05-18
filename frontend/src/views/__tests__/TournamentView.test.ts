@@ -333,4 +333,14 @@ describe('TournamentView', () => {
 
     expect(wrapper.find('[data-testid="active-event-card"]').exists()).toBe(true)
   })
+
+  it('「?」ボタンクリックでヘルプモーダルが表示される', async () => {
+    const router = createTestRouter()
+    const wrapper = mount(TournamentView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="help-modal"]').exists()).toBe(false)
+    await wrapper.find('[data-testid="help-button"]').trigger('click')
+    expect(wrapper.find('[data-testid="help-modal"]').exists()).toBe(true)
+  })
 })

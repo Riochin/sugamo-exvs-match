@@ -448,4 +448,16 @@ describe('ResultRevealView', () => {
     const section = wrapper.find('[data-testid="star-results-section"]')
     expect(section.attributes('data-event-id')).toBe('event-1')
   })
+
+  it('「?」ボタンクリックでヘルプモーダルが表示される', async () => {
+    mockEventPhase.value = 'REVEALING'
+    const router = createTestRouter('/events/event-1/result')
+    await router.isReady()
+    const wrapper = mount(ResultRevealView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="help-modal"]').exists()).toBe(false)
+    await wrapper.find('[data-testid="help-button"]').trigger('click')
+    expect(wrapper.find('[data-testid="help-modal"]').exists()).toBe(true)
+  })
 })

@@ -118,4 +118,13 @@ describe('GroupView', () => {
     expect(cards[0].text()).toContain('Alice')
     expect(cards[1].text()).toContain('Charlie')
   })
+
+  it('「?」ボタンクリックでヘルプモーダルが表示される', async () => {
+    const router = createTestRouter()
+    const wrapper = mount(GroupView, { global: { plugins: [router] } })
+
+    expect(wrapper.find('[data-testid="help-modal"]').exists()).toBe(false)
+    await wrapper.find('[data-testid="help-button"]').trigger('click')
+    expect(wrapper.find('[data-testid="help-modal"]').exists()).toBe(true)
+  })
 })
