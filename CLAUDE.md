@@ -43,3 +43,43 @@ Kiro-style Spec-Driven Development on an agentic SDLC
 - Load entire `.kiro/steering/` as project memory
 - Default files: `product.md`, `tech.md`, `structure.md`
 - Custom files are supported (managed via `/kiro:steering-custom`)
+
+---
+
+## Development Commands
+
+> **Note for agents**: There is NO `test` script in `package.json`. Do NOT run `pnpm run test` — it will fail with `ERR_PNPM_NO_SCRIPT`. Use the commands below.
+
+All commands must be run from the **`frontend/`** directory (the backend has its own separate test config).
+
+### Run tests
+```bash
+cd frontend
+pnpm exec vitest run
+```
+
+### Run tests in watch mode (interactive)
+```bash
+cd frontend
+pnpm exec vitest
+```
+
+### TypeScript type check
+```bash
+cd frontend
+pnpm exec vue-tsc --noEmit
+```
+
+### Build (type check + bundle)
+```bash
+cd frontend
+pnpm exec vite build
+# or, to also type-check before building:
+pnpm run build
+```
+
+### Backend tests
+```bash
+cd backend
+pnpm exec vitest run
+```
