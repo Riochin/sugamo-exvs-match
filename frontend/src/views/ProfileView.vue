@@ -4,9 +4,9 @@
 
     <HelpModal :visible="showHelp" title="プロフィールの見方" @close="showHelp = false">
       <div class="text-sm text-white/70 text-left space-y-2">
-        <p>① 通算戦績（総試合数・勝数・勝率）を確認できます</p>
-        <p>② これまでに獲得したスターの累計が表示されます</p>
-        <p>③ 最大のファン = 一番多くスターをくれたプレイヤー</p>
+        <p>① <span class="text-star font-semibold">通算戦績</span>（総試合数・勝数・勝率）を確認できます</p>
+        <p>② これまでに獲得した<span class="text-star font-semibold">スターの累計</span>が表示されます</p>
+        <p>③ <span class="text-star font-semibold">最大のファン</span> = 一番多くスターをくれたプレイヤー</p>
       </div>
     </HelpModal>
 

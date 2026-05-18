@@ -13,6 +13,7 @@ export default {
         'bg-sub': '#9681a2',
         main: '#2b008e',
         dark: '#12002b',
+        star: '#facc15',
         // サブカラー（現在未使用）
         accent: '#c20e00',
         brand: '#0d36ac',

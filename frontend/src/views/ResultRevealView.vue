@@ -8,10 +8,10 @@
 
       <HelpModal :visible="showHelp" title="結果発表の見方" @close="showHelp = false">
         <div class="text-sm text-white/70 text-left space-y-2">
-          <p>① 結果は順番に発表：1軍残留 → 2軍残留 → ボーダー</p>
-          <p>② ボーダーゾーンは昇格・降格の対象者です</p>
-          <p>③ 結果発表後にスターランキングが表示されます</p>
-          <p>④ 全発表完了後に自動でホームへ戻ります</p>
+          <p>① 結果は順番に発表：<span class="text-star font-semibold">1軍残留 → 2軍残留 → ボーダー</span></p>
+          <p>② <span class="text-star font-semibold">ボーダーゾーン</span>は昇格・降格の対象者です</p>
+          <p>③ 結果発表後に<span class="text-star font-semibold">スターランキング</span>が表示されます</p>
+          <p>④ <span class="text-star font-semibold">全発表完了後</span>に自動でホームへ戻ります</p>
         </div>
       </HelpModal>
 

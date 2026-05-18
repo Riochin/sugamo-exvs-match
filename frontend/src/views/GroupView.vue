@@ -4,9 +4,9 @@
 
     <HelpModal :visible="showHelp" title="グループの見方" @close="showHelp = false">
       <div class="text-sm text-white/70 text-left space-y-2">
-        <p>① 現在の1軍・2軍メンバーを確認できます</p>
-        <p>② 大会の結果によって昇格・降格が決まります</p>
-        <p>③ プレイヤー名をタップするとプロフィールが見られます</p>
+        <p>① 現在の<span class="text-star font-semibold">1軍・2軍メンバー</span>を確認できます</p>
+        <p>② 大会の結果によって<span class="text-star font-semibold">昇格・降格</span>が決まります</p>
+        <p>③ <span class="text-star font-semibold">プレイヤー名</span>をタップするとプロフィールが見られます</p>
       </div>
     </HelpModal>
 

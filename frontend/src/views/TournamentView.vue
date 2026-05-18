@@ -4,9 +4,9 @@
 
     <HelpModal :visible="showHelp" title="大会の使い方" @close="showHelp = false">
       <div class="text-sm text-white/70 text-left space-y-2">
-        <p>① 試合後にスコア入力ボタンで結果を登録します</p>
-        <p>② 全員が入力を完了すると自動的に次のフェーズへ移ります</p>
-        <p>③ 下のリストから過去の大会結果をいつでも確認できます</p>
+        <p>① 試合後に<span class="text-star font-semibold">スコア入力ボタン</span>で結果を登録します</p>
+        <p>② <span class="text-star font-semibold">全員が入力を完了</span>すると自動的に次のフェーズへ移ります</p>
+        <p>③ 下のリストから<span class="text-star font-semibold">過去の大会結果</span>をいつでも確認できます</p>
       </div>
     </HelpModal>
 

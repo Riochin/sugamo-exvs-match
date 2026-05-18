@@ -4,9 +4,9 @@
 
     <HelpModal :visible="showHelp" title="管理者の操作" @close="showHelp = false">
       <div class="text-sm text-white/70 text-left space-y-2">
-        <p>① 大会の作成・開始ができます</p>
-        <p>② フェーズを進めてスコア集計 → スター投票 → 結果発表の順で進行します</p>
-        <p>③ 不在プレイヤーのマーク・スコア修正などの管理操作ができます</p>
+        <p>① 大会の<span class="text-star font-semibold">作成・開始</span>ができます</p>
+        <p>② フェーズを進めて<span class="text-star font-semibold">スコア集計 → スター投票 → 結果発表</span>の順で進行します</p>
+        <p>③ <span class="text-star font-semibold">不在プレイヤーのマーク・スコア修正</span>などの管理操作ができます</p>
       </div>
     </HelpModal>
 
