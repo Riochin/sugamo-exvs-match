@@ -1,5 +1,25 @@
 <template>
-  <div class="p-4 text-white">
+  <div class="pb-4 text-white">
+    <PageHeader title="グループ" @help="showHelp = true" />
+
+    <HelpModal :visible="showHelp" title="グループの見方" @close="showHelp = false">
+      <div class="bg-white/5 rounded-lg p-3 text-xs text-gray-400 text-left space-y-2">
+        <p class="flex items-start gap-2">
+          <span class="shrink-0 text-yellow-400">①</span>
+          現在の1軍・2軍メンバーを確認できます
+        </p>
+        <p class="flex items-start gap-2">
+          <span class="shrink-0 text-yellow-400">②</span>
+          大会の結果によって昇格・降格が決まります
+        </p>
+        <p class="flex items-start gap-2">
+          <span class="shrink-0 text-yellow-400">③</span>
+          プレイヤー名をタップするとプロフィールが見られます
+        </p>
+      </div>
+    </HelpModal>
+
+    <div class="px-4">
     <div
       v-if="isLoading"
       data-testid="loading-spinner"
@@ -45,13 +65,18 @@
         </div>
       </div>
     </template>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useGroupProfile } from '@/composables/useGroupProfile'
 import PlayerCard from '@/components/group/PlayerCard.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
+import PageHeader from '@/components/ui/PageHeader.vue'
+import HelpModal from '@/components/ui/HelpModal.vue'
 
 const { firstTeam, secondTeam, isLoading, error } = useGroupProfile()
+const showHelp = ref(false)
 </script>

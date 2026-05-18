@@ -1,6 +1,25 @@
 <template>
-  <div class="min-h-screen bg-[#090014] px-4 py-6 text-white">
-    <h1 class="mb-6 text-xl font-bold text-main">管理者ダッシュボード</h1>
+  <div class="min-h-screen bg-[#090014] text-white">
+    <PageHeader title="管理" @help="showHelp = true" />
+
+    <HelpModal :visible="showHelp" title="管理者の操作" @close="showHelp = false">
+      <div class="bg-white/5 rounded-lg p-3 text-xs text-gray-400 text-left space-y-2">
+        <p class="flex items-start gap-2">
+          <span class="shrink-0 text-yellow-400">①</span>
+          大会の作成・開始ができます
+        </p>
+        <p class="flex items-start gap-2">
+          <span class="shrink-0 text-yellow-400">②</span>
+          フェーズを進めてスコア集計 → スター投票 → 結果発表の順で進行します
+        </p>
+        <p class="flex items-start gap-2">
+          <span class="shrink-0 text-yellow-400">③</span>
+          不在プレイヤーのマーク、スコアの修正などの管理操作ができます
+        </p>
+      </div>
+    </HelpModal>
+
+    <div class="px-4 py-6">
 
     <div v-if="isInitialLoading" class="flex justify-center py-16">
       <LoadingSpinner label="データを取得中..." variant="accent" />
@@ -167,6 +186,7 @@
       <p class="text-gray-400">管理者権限が必要です。</p>
     </template>
 
+    </div>
   </div>
 </template>
 
@@ -177,10 +197,13 @@ import { useAdminEvent } from '@/composables/useAdminEvent'
 import { useAuth } from '@/composables/useAuth'
 import { useEventStream } from '@/composables/useEventStream'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
+import PageHeader from '@/components/ui/PageHeader.vue'
+import HelpModal from '@/components/ui/HelpModal.vue'
 
 const router = useRouter()
 const { activeEvent, isLoading, isInitialLoading, error, createEvent, setAbsent, setPhase, refresh } = useAdminEvent()
 const { currentPlayer } = useAuth()
+const showHelp = ref(false)
 
 const allPhases = ['COLLECTING', 'STAR_VOTING', 'REVEALING', 'DONE'] as const
 type EventPhase = (typeof allPhases)[number]

@@ -1,6 +1,7 @@
 <template>
   <div
     v-if="visible"
+    data-testid="star-intro-modal"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4"
   >
     <div class="w-full max-w-sm bg-[#1a0a2e] border border-yellow-500/60 rounded-2xl p-8 text-center shadow-2xl">

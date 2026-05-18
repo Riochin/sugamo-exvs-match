@@ -1,9 +1,7 @@
 <template>
   <div class="min-h-screen bg-[#090014] text-white overflow-y-auto">
-    <div class="max-w-md mx-auto px-4 pt-8 pb-24">
-      <h1 class="text-center text-2xl font-bold mb-6 tracking-widest text-yellow-400">
-        スター投票
-      </h1>
+    <div class="max-w-md mx-auto px-4 pt-0 pb-24">
+      <PageHeader title="スター投票" @help="showIntroModal = true" />
 
       <!-- フェーズが STAR_VOTING でない場合 -->
       <div
@@ -71,6 +69,7 @@ import { useEventStream } from '@/composables/useEventStream'
 import StarVotingPanel from '@/components/star/StarVotingPanel.vue'
 import StarConfirmDialog from '@/components/star/StarConfirmDialog.vue'
 import StarIntroModal from '@/components/star/StarIntroModal.vue'
+import PageHeader from '@/components/ui/PageHeader.vue'
 
 const route = useRoute()
 const router = useRouter()

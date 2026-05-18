@@ -1,5 +1,25 @@
 <template>
-  <div class="p-4 text-white">
+  <div class="pb-4 text-white">
+    <PageHeader title="大会" @help="showHelp = true" />
+
+    <HelpModal :visible="showHelp" title="大会の使い方" @close="showHelp = false">
+      <div class="bg-white/5 rounded-lg p-3 text-xs text-gray-400 text-left space-y-2">
+        <p class="flex items-start gap-2">
+          <span class="shrink-0 text-yellow-400">①</span>
+          試合後にスコア入力ボタンで結果を登録します
+        </p>
+        <p class="flex items-start gap-2">
+          <span class="shrink-0 text-yellow-400">②</span>
+          全員が入力を完了すると自動的に次のフェーズへ移ります
+        </p>
+        <p class="flex items-start gap-2">
+          <span class="shrink-0 text-yellow-400">③</span>
+          下のリストから過去の大会結果をいつでも確認できます
+        </p>
+      </div>
+    </HelpModal>
+
+    <div class="px-4">
     <div v-if="isLoading" class="flex justify-center py-16">
       <LoadingSpinner label="大会情報を取得中..." />
     </div>
@@ -54,6 +74,7 @@
         @close="isScoreModalOpen = false"
       />
     </template>
+    </div>
   </div>
 </template>
 
@@ -66,6 +87,8 @@ import ActiveEventCard from '@/components/event/ActiveEventCard.vue'
 import PastEventModal from '@/components/event/PastEventModal.vue'
 import ScoreEntryModal from '@/components/score/ScoreEntryModal.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
+import PageHeader from '@/components/ui/PageHeader.vue'
+import HelpModal from '@/components/ui/HelpModal.vue'
 
 interface ActiveEvent {
   id: string
@@ -89,6 +112,7 @@ interface EventSummary {
 }
 
 const router = useRouter()
+const showHelp = ref(false)
 const { progressUpdate, resultReady, currentPhase, connect } = useEventStream()
 
 const isLoading = ref(true)

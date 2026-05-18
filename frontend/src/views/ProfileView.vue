@@ -1,5 +1,25 @@
 <template>
-  <div class="p-4 text-white">
+  <div class="pb-4 text-white">
+    <PageHeader title="プロフィール" @help="showHelp = true" />
+
+    <HelpModal :visible="showHelp" title="プロフィールの見方" @close="showHelp = false">
+      <div class="bg-white/5 rounded-lg p-3 text-xs text-gray-400 text-left space-y-2">
+        <p class="flex items-start gap-2">
+          <span class="shrink-0 text-yellow-400">①</span>
+          通算戦績（総試合数・勝数・勝率）を確認できます
+        </p>
+        <p class="flex items-start gap-2">
+          <span class="shrink-0 text-yellow-400">②</span>
+          これまでに獲得したスターの累計が表示されます
+        </p>
+        <p class="flex items-start gap-2">
+          <span class="shrink-0 text-yellow-400">③</span>
+          最大のファン = 一番多くスターをくれたプレイヤー
+        </p>
+      </div>
+    </HelpModal>
+
+    <div class="px-4">
     <div
       v-if="isLoading"
       data-testid="loading-spinner"
@@ -153,6 +173,7 @@
         ログアウト
       </button>
     </template>
+    </div>
   </div>
 </template>
 
@@ -164,9 +185,12 @@ import { useAuth } from '@/composables/useAuth'
 import WinRateHistory from '@/components/group/WinRateHistory.vue'
 import PastEventModal from '@/components/event/PastEventModal.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
+import PageHeader from '@/components/ui/PageHeader.vue'
+import HelpModal from '@/components/ui/HelpModal.vue'
 
 const route = useRoute()
 const router = useRouter()
+const showHelp = ref(false)
 const playerId = computed(() => String(route.params.id))
 const { profile, isLoading, error, notFound } = usePlayerProfile(playerId)
 

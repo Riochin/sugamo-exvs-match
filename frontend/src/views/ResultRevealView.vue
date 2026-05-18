@@ -3,11 +3,30 @@
     data-testid="result-reveal-view"
     class="min-h-screen bg-[#090014] text-white overflow-y-auto"
   >
-    <div class="max-w-md mx-auto px-4 pt-8 pb-24">
-      <!-- ヘッダー -->
-      <h1 class="text-center text-2xl font-bold mb-8 tracking-widest text-yellow-400">
-        結果発表
-      </h1>
+    <div class="max-w-md mx-auto px-4 pt-0 pb-24">
+      <PageHeader title="結果発表" @help="showHelp = true" />
+
+      <HelpModal :visible="showHelp" title="結果発表の見方" @close="showHelp = false">
+        <div class="bg-white/5 rounded-lg p-3 text-xs text-gray-400 text-left space-y-2">
+          <p class="flex items-start gap-2">
+            <span class="shrink-0 text-yellow-400">①</span>
+            結果は順番に発表されます：<br>
+            1軍残留 → 2軍残留 → ボーダー
+          </p>
+          <p class="flex items-start gap-2">
+            <span class="shrink-0 text-yellow-400">②</span>
+            ボーダーゾーンは昇格・降格の対象者です
+          </p>
+          <p class="flex items-start gap-2">
+            <span class="shrink-0 text-yellow-400">③</span>
+            結果発表後にスターランキングが表示されます
+          </p>
+          <p class="flex items-start gap-2">
+            <span class="shrink-0 text-yellow-400">④</span>
+            全発表完了後に自動でホームへ戻ります
+          </p>
+        </div>
+      </HelpModal>
 
       <!-- ローディング -->
       <div v-if="isLoading && !result" class="flex justify-center py-16">
@@ -106,10 +125,14 @@ import { useAuth } from '@/composables/useAuth'
 import ResultCard from '@/components/result/ResultCard.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import StarResultsSection from '@/components/star/StarResultsSection.vue'
+import PageHeader from '@/components/ui/PageHeader.vue'
+import HelpModal from '@/components/ui/HelpModal.vue'
 
 const route = useRoute()
 const router = useRouter()
 const { currentPlayer } = useAuth()
+
+const showHelp = ref(false)
 
 const { result, revealPhase, eventPhase, isLoading, error, initialize, advancePhase } =
   useResultReveal()
