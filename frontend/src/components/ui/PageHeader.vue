@@ -1,25 +1,26 @@
 <template>
-  <div class="flex items-center justify-between px-4 pt-4 pb-2">
-    <RouterLink
-      v-if="currentPlayer?.isAdmin && !isAdminPage"
-      to="/admin"
-      class="text-xs font-bold text-red-400 w-14 text-left"
-    >
-      管理
-    </RouterLink>
-    <div v-else class="w-14" />
-
+  <div class="flex items-center justify-between px-4 py-2 bg-dark mb-4">
     <h1 class="text-lg font-bold text-white tracking-wide">{{ title }}</h1>
 
-    <button
-      type="button"
-      data-testid="help-button"
-      aria-label="ヘルプ"
-      class="w-8 h-8 rounded-full border border-yellow-500/60 text-yellow-400 text-sm font-bold flex items-center justify-center shrink-0"
-      @click="$emit('help')"
-    >
-      ?
-    </button>
+    <div class="flex items-center gap-3">
+      <RouterLink
+        v-if="currentPlayer?.isAdmin && !isAdminPage"
+        to="/admin"
+        class="text-xs font-bold text-white"
+      >
+        管理
+      </RouterLink>
+
+      <button
+        type="button"
+        data-testid="help-button"
+        aria-label="ヘルプ"
+        class="w-8 h-8 rounded-full border-2 border-white/60 text-white text-sm font-bold flex items-center justify-center shrink-0"
+        @click="$emit('help')"
+      >
+        ?
+      </button>
+    </div>
   </div>
 </template>
 
