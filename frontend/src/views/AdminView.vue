@@ -3,19 +3,10 @@
     <PageHeader title="管理" @help="showHelp = true" />
 
     <HelpModal :visible="showHelp" title="管理者の操作" @close="showHelp = false">
-      <div class="bg-white/5 rounded-lg p-3 text-xs text-gray-400 text-left space-y-2">
-        <p class="flex items-start gap-2">
-          <span class="shrink-0 text-yellow-400">①</span>
-          大会の作成・開始ができます
-        </p>
-        <p class="flex items-start gap-2">
-          <span class="shrink-0 text-yellow-400">②</span>
-          フェーズを進めてスコア集計 → スター投票 → 結果発表の順で進行します
-        </p>
-        <p class="flex items-start gap-2">
-          <span class="shrink-0 text-yellow-400">③</span>
-          不在プレイヤーのマーク、スコアの修正などの管理操作ができます
-        </p>
+      <div class="text-sm text-white/70 text-left space-y-2">
+        <p>① 大会の作成・開始ができます</p>
+        <p>② フェーズを進めてスコア集計 → スター投票 → 結果発表の順で進行します</p>
+        <p>③ 不在プレイヤーのマーク・スコア修正などの管理操作ができます</p>
       </div>
     </HelpModal>
 

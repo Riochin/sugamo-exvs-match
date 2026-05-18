@@ -7,24 +7,11 @@
       <PageHeader title="結果発表" @help="showHelp = true" />
 
       <HelpModal :visible="showHelp" title="結果発表の見方" @close="showHelp = false">
-        <div class="bg-white/5 rounded-lg p-3 text-xs text-gray-400 text-left space-y-2">
-          <p class="flex items-start gap-2">
-            <span class="shrink-0 text-yellow-400">①</span>
-            結果は順番に発表されます：<br>
-            1軍残留 → 2軍残留 → ボーダー
-          </p>
-          <p class="flex items-start gap-2">
-            <span class="shrink-0 text-yellow-400">②</span>
-            ボーダーゾーンは昇格・降格の対象者です
-          </p>
-          <p class="flex items-start gap-2">
-            <span class="shrink-0 text-yellow-400">③</span>
-            結果発表後にスターランキングが表示されます
-          </p>
-          <p class="flex items-start gap-2">
-            <span class="shrink-0 text-yellow-400">④</span>
-            全発表完了後に自動でホームへ戻ります
-          </p>
+        <div class="text-sm text-white/70 text-left space-y-2">
+          <p>① 結果は順番に発表：1軍残留 → 2軍残留 → ボーダー</p>
+          <p>② ボーダーゾーンは昇格・降格の対象者です</p>
+          <p>③ 結果発表後にスターランキングが表示されます</p>
+          <p>④ 全発表完了後に自動でホームへ戻ります</p>
         </div>
       </HelpModal>
 

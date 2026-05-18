@@ -3,19 +3,10 @@
     <PageHeader title="グループ" @help="showHelp = true" />
 
     <HelpModal :visible="showHelp" title="グループの見方" @close="showHelp = false">
-      <div class="bg-white/5 rounded-lg p-3 text-xs text-gray-400 text-left space-y-2">
-        <p class="flex items-start gap-2">
-          <span class="shrink-0 text-yellow-400">①</span>
-          現在の1軍・2軍メンバーを確認できます
-        </p>
-        <p class="flex items-start gap-2">
-          <span class="shrink-0 text-yellow-400">②</span>
-          大会の結果によって昇格・降格が決まります
-        </p>
-        <p class="flex items-start gap-2">
-          <span class="shrink-0 text-yellow-400">③</span>
-          プレイヤー名をタップするとプロフィールが見られます
-        </p>
+      <div class="text-sm text-white/70 text-left space-y-2">
+        <p>① 現在の1軍・2軍メンバーを確認できます</p>
+        <p>② 大会の結果によって昇格・降格が決まります</p>
+        <p>③ プレイヤー名をタップするとプロフィールが見られます</p>
       </div>
     </HelpModal>
 
