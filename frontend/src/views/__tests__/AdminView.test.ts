@@ -3,28 +3,30 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { ref, computed } from 'vue'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import AdminView from '../AdminView.vue'
+import type { EventWithScores } from '@/composables/useAdminEvent'
 
-const mockActiveEvent = ref<{
-  id: string
-  phase: 'COLLECTING' | 'REVEALING' | 'DONE'
-  heldAt: string
-  scores: { playerId: string; playerName: string; wins: number; losses: number; absent: boolean }[]
-} | null>(null)
+const mockCollectingEvents = ref<EventWithScores[]>([])
+const mockCeremonyEvent = ref<EventWithScores | null>(null)
 const mockIsLoading = ref(false)
+const mockIsInitialLoading = ref(false)
 const mockError = ref<string | null>(null)
 const mockCreateEvent = vi.fn()
 const mockSetAbsent = vi.fn()
+const mockSetAbsentBatch = vi.fn()
 const mockAdvancePhase = vi.fn()
 const mockSetPhase = vi.fn()
 const mockRefresh = vi.fn()
 
 vi.mock('@/composables/useAdminEvent', () => ({
   useAdminEvent: () => ({
-    activeEvent: computed(() => mockActiveEvent.value),
+    collectingEvents: computed(() => mockCollectingEvents.value),
+    ceremonyEvent: computed(() => mockCeremonyEvent.value),
     isLoading: computed(() => mockIsLoading.value),
+    isInitialLoading: computed(() => mockIsInitialLoading.value),
     error: computed(() => mockError.value),
     createEvent: mockCreateEvent,
     setAbsent: mockSetAbsent,
+    setAbsentBatch: mockSetAbsentBatch,
     advancePhase: mockAdvancePhase,
     setPhase: mockSetPhase,
     refresh: mockRefresh,
@@ -61,9 +63,20 @@ vi.mock('@/composables/useEventStream', () => ({
 }))
 
 const sampleScores = [
-  { playerId: 'p1', playerName: 'Alice', wins: 0, losses: 0, absent: false },
-  { playerId: 'p2', playerName: 'Bob', wins: 1, losses: 0, absent: true },
+  { playerId: 'p1', playerName: 'Alice', wins: 0, losses: 0, absent: false, submitted: false },
+  { playerId: 'p2', playerName: 'Bob', wins: 1, losses: 0, absent: true, submitted: false },
 ]
+
+const collectingEvent: EventWithScores = {
+  id: 'e1',
+  name: 'テスト大会',
+  phase: 'COLLECTING',
+  heldAt: '2026-05-12T00:00:00.000Z',
+  hasPromotionRelegation: false,
+  venue: null,
+  description: null,
+  scores: sampleScores,
+}
 
 function createTestRouter() {
   return createRouter({
@@ -78,14 +91,16 @@ function createTestRouter() {
 describe('AdminView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockActiveEvent.value = null
+    mockCollectingEvents.value = []
+    mockCeremonyEvent.value = null
     mockIsLoading.value = false
+    mockIsInitialLoading.value = false
     mockError.value = null
     mockCurrentPlayer.value = { playerId: 'admin-1', name: 'Admin', isAdmin: true }
     mockLatestPhaseUpdate.value = null
   })
 
-  it('activeEvent が null のとき大会作成フォームを表示する', async () => {
+  it('大会がない場合に大会作成フォームを表示する', async () => {
     const router = createTestRouter()
     const wrapper = mount(AdminView, { global: { plugins: [router] } })
     await flushPromises()
@@ -95,7 +110,7 @@ describe('AdminView', () => {
     expect(wrapper.find('[data-testid="create-event-submit"]').exists()).toBe(true)
   })
 
-  it('activeEvent が null のとき参加者一覧を表示しない', async () => {
+  it('大会がない場合に参加者一覧を表示しない', async () => {
     const router = createTestRouter()
     const wrapper = mount(AdminView, { global: { plugins: [router] } })
     await flushPromises()
@@ -103,8 +118,8 @@ describe('AdminView', () => {
     expect(wrapper.find('[data-testid="scores-list"]').exists()).toBe(false)
   })
 
-  it('phase === COLLECTING のとき参加者一覧とフェーズ変更ボタンを表示する', async () => {
-    mockActiveEvent.value = { id: 'e1', phase: 'COLLECTING', heldAt: '2026-05-12T00:00:00.000Z', scores: sampleScores }
+  it('COLLECTING 大会があるとき参加者一覧とフェーズ変更ボタンを表示する', async () => {
+    mockCollectingEvents.value = [collectingEvent]
     const router = createTestRouter()
     const wrapper = mount(AdminView, { global: { plugins: [router] } })
     await flushPromises()
@@ -114,8 +129,8 @@ describe('AdminView', () => {
     expect(buttons.some((b) => b.text() === 'REVEALING')).toBe(true)
   })
 
-  it('phase === COLLECTING のとき欠席チェックボックスが各プレイヤーに表示される', async () => {
-    mockActiveEvent.value = { id: 'e1', phase: 'COLLECTING', heldAt: '2026-05-12T00:00:00.000Z', scores: sampleScores }
+  it('COLLECTING 大会があるとき欠席チェックボックスが各プレイヤーに表示される', async () => {
+    mockCollectingEvents.value = [collectingEvent]
     const router = createTestRouter()
     const wrapper = mount(AdminView, { global: { plugins: [router] } })
     await flushPromises()
@@ -124,8 +139,17 @@ describe('AdminView', () => {
     expect(checkboxes).toHaveLength(2)
   })
 
-  it('phase === COLLECTING のとき大会作成フォームを表示しない', async () => {
-    mockActiveEvent.value = { id: 'e1', phase: 'COLLECTING', heldAt: '2026-05-12T00:00:00.000Z', scores: sampleScores }
+  it('COLLECTING 大会があっても ceremonyEvent が null なら大会作成フォームを表示する', async () => {
+    mockCollectingEvents.value = [collectingEvent]
+    const router = createTestRouter()
+    const wrapper = mount(AdminView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="create-event-form"]').exists()).toBe(true)
+  })
+
+  it('セレモニーイベントがあるとき大会作成フォームを表示しない', async () => {
+    mockCeremonyEvent.value = { ...collectingEvent, id: 'e2', phase: 'STAR_VOTING' }
     const router = createTestRouter()
     const wrapper = mount(AdminView, { global: { plugins: [router] } })
     await flushPromises()
@@ -133,17 +157,17 @@ describe('AdminView', () => {
     expect(wrapper.find('[data-testid="create-event-form"]').exists()).toBe(false)
   })
 
-  it('phase === REVEALING のときフェーズ進行ボタンを表示しない', async () => {
-    mockActiveEvent.value = { id: 'e1', phase: 'REVEALING', heldAt: '2026-05-12T00:00:00.000Z', scores: sampleScores }
+  it('REVEALING セレモニーイベントのとき advance-to-star-voting-btn を表示しない', async () => {
+    mockCeremonyEvent.value = { ...collectingEvent, id: 'e2', phase: 'REVEALING' }
     const router = createTestRouter()
     const wrapper = mount(AdminView, { global: { plugins: [router] } })
     await flushPromises()
 
-    expect(wrapper.find('[data-testid="advance-phase-btn"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="advance-to-star-voting-btn"]').exists()).toBe(false)
   })
 
-  it('phase === REVEALING のときフェーズ名を表示する', async () => {
-    mockActiveEvent.value = { id: 'e1', phase: 'REVEALING', heldAt: '2026-05-12T00:00:00.000Z', scores: sampleScores }
+  it('REVEALING セレモニーイベントのときフェーズ名を表示する', async () => {
+    mockCeremonyEvent.value = { ...collectingEvent, id: 'e2', phase: 'REVEALING' }
     const router = createTestRouter()
     const wrapper = mount(AdminView, { global: { plugins: [router] } })
     await flushPromises()
@@ -151,13 +175,13 @@ describe('AdminView', () => {
     expect(wrapper.find('[data-testid="admin-content"]').text()).toContain('REVEALING')
   })
 
-  it('phase === DONE のとき操作ボタンを表示しない', async () => {
-    mockActiveEvent.value = { id: 'e1', phase: 'DONE', heldAt: '2026-05-12T00:00:00.000Z', scores: sampleScores }
+  it('STAR_VOTING セレモニーイベントがあるとき大会作成フォームと advance-to-star-voting-btn を表示しない', async () => {
+    mockCeremonyEvent.value = { ...collectingEvent, id: 'e2', phase: 'STAR_VOTING' }
     const router = createTestRouter()
     const wrapper = mount(AdminView, { global: { plugins: [router] } })
     await flushPromises()
 
-    expect(wrapper.find('[data-testid="advance-phase-btn"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="advance-to-star-voting-btn"]').exists()).toBe(false)
     expect(wrapper.find('[data-testid="create-event-form"]').exists()).toBe(false)
   })
 
@@ -179,8 +203,8 @@ describe('AdminView', () => {
     expect(calledArg.hasPromotionRelegation).toBe(false)
   })
 
-  it('フェーズ変更ボタンを押して確認すると setPhase() を呼ぶ', async () => {
-    mockActiveEvent.value = { id: 'e1', phase: 'COLLECTING', heldAt: '2026-05-12T00:00:00.000Z', scores: sampleScores }
+  it('フェーズ変更ボタンを押して確認すると setPhase() を eventId 付きで呼ぶ', async () => {
+    mockCollectingEvents.value = [collectingEvent]
     mockSetPhase.mockResolvedValue(undefined)
     const router = createTestRouter()
     const wrapper = mount(AdminView, { global: { plugins: [router] } })
@@ -194,12 +218,11 @@ describe('AdminView', () => {
     await confirmBtn!.trigger('click')
     await flushPromises()
 
-    expect(mockSetPhase).toHaveBeenCalledWith('REVEALING')
+    expect(mockSetPhase).toHaveBeenCalledWith('e1', 'REVEALING')
   })
 
-  it('欠席チェックボックスを変更すると setAbsent() を呼ぶ', async () => {
-    mockActiveEvent.value = { id: 'e1', phase: 'COLLECTING', heldAt: '2026-05-12T00:00:00.000Z', scores: sampleScores }
-    mockSetAbsent.mockResolvedValue(undefined)
+  it('欠席チェックボックスを変更してもすぐにAPIは呼ばれない', async () => {
+    mockCollectingEvents.value = [collectingEvent]
     const router = createTestRouter()
     const wrapper = mount(AdminView, { global: { plugins: [router] } })
     await flushPromises()
@@ -208,7 +231,49 @@ describe('AdminView', () => {
     await checkbox.trigger('change')
     await flushPromises()
 
-    expect(mockSetAbsent).toHaveBeenCalledWith('p1', true)
+    expect(mockSetAbsent).not.toHaveBeenCalled()
+    expect(mockSetAbsentBatch).not.toHaveBeenCalled()
+  })
+
+  it('欠席チェックボックスを変更すると出欠更新ボタンが表示される', async () => {
+    mockCollectingEvents.value = [collectingEvent]
+    const router = createTestRouter()
+    const wrapper = mount(AdminView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="submit-absent-btn"]').exists()).toBe(false)
+
+    await wrapper.find('[data-testid="absent-checkbox-p1"]').trigger('change')
+
+    expect(wrapper.find('[data-testid="submit-absent-btn"]').exists()).toBe(true)
+  })
+
+  it('出欠を更新するボタンを押すと setAbsentBatch() を eventId 付きで呼ぶ', async () => {
+    mockCollectingEvents.value = [collectingEvent]
+    mockSetAbsentBatch.mockResolvedValue(undefined)
+    const router = createTestRouter()
+    const wrapper = mount(AdminView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    await wrapper.find('[data-testid="absent-checkbox-p1"]').trigger('change')
+    await wrapper.find('[data-testid="submit-absent-btn"]').trigger('click')
+    await flushPromises()
+
+    expect(mockSetAbsentBatch).toHaveBeenCalledWith('e1', [{ playerId: 'p1', absent: true }])
+  })
+
+  it('リセットボタンを押すと出欠更新ボタンが消える', async () => {
+    mockCollectingEvents.value = [collectingEvent]
+    const router = createTestRouter()
+    const wrapper = mount(AdminView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    await wrapper.find('[data-testid="absent-checkbox-p1"]').trigger('change')
+    expect(wrapper.find('[data-testid="submit-absent-btn"]').exists()).toBe(true)
+
+    await wrapper.find('[data-testid="reset-absent-btn"]').trigger('click')
+
+    expect(wrapper.find('[data-testid="submit-absent-btn"]').exists()).toBe(false)
   })
 
   it('error が設定されているときエラーメッセージを表示する', async () => {
@@ -231,8 +296,8 @@ describe('AdminView', () => {
     expect(submitBtn.attributes('disabled')).toBeDefined()
   })
 
-  it('activeEvent がある場合に useEventStream.connect が呼ばれる', async () => {
-    mockActiveEvent.value = { id: 'e1', phase: 'COLLECTING', heldAt: '2026-05-12T00:00:00.000Z', scores: sampleScores }
+  it('ceremonyEvent がある場合に useEventStream.connect が呼ばれる', async () => {
+    mockCeremonyEvent.value = { ...collectingEvent, id: 'e1', phase: 'STAR_VOTING' }
     const router = createTestRouter()
     mount(AdminView, { global: { plugins: [router] } })
     await flushPromises()
@@ -240,8 +305,17 @@ describe('AdminView', () => {
     expect(mockConnect).toHaveBeenCalledWith('e1')
   })
 
+  it('COLLECTING 大会のみの場合は connect が呼ばれない', async () => {
+    mockCollectingEvents.value = [collectingEvent]
+    const router = createTestRouter()
+    mount(AdminView, { global: { plugins: [router] } })
+    await flushPromises()
+
+    expect(mockConnect).not.toHaveBeenCalled()
+  })
+
   it('latestPhaseUpdate が変化したとき refresh() を呼ぶ', async () => {
-    mockActiveEvent.value = { id: 'e1', phase: 'COLLECTING', heldAt: '2026-05-12T00:00:00.000Z', scores: sampleScores }
+    mockCeremonyEvent.value = { ...collectingEvent, id: 'e1', phase: 'STAR_VOTING' }
     const router = createTestRouter()
     mount(AdminView, { global: { plugins: [router] } })
     await flushPromises()

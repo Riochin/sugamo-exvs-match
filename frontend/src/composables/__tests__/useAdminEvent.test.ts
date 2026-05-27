@@ -14,7 +14,7 @@ const mockActiveEvent = {
   description: null,
   phase: 'COLLECTING' as const,
   heldAt: '2026-05-12T00:00:00.000Z',
-  scores: [{ playerId: 'p1', playerName: 'Alice', wins: 0, losses: 0, absent: false }],
+  scores: [{ playerId: 'p1', playerName: 'Alice', wins: 0, losses: 0, absent: false, submitted: false }],
 }
 
 const validCreateParams = { heldAt: new Date('2026-05-12T00:00:00.000Z'), name: 'テスト大会', hasPromotionRelegation: false }
@@ -43,52 +43,95 @@ describe('useAdminEvent', () => {
 
     mockGetActiveFn.mockResolvedValue({
       ok: true,
-      json: async () => ({ event: null }),
+      json: async () => ({ events: [] }),
     })
   })
 
-  it('初期化時に refresh() が呼ばれ activeEvent が null に設定される', async () => {
+  it('初期化時に refresh() が呼ばれ activeEvents が空配列に設定される', async () => {
     const { useAdminEvent } = await import('../useAdminEvent')
-    const { activeEvent } = useAdminEvent()
+    const { activeEvents } = useAdminEvent()
 
     await flushPromises()
 
     expect(mockGetActiveFn).toHaveBeenCalledOnce()
-    expect(activeEvent.value).toBeNull()
+    expect(activeEvents.value).toEqual([])
   })
 
-  it('初期化時に進行中大会がある場合 activeEvent に設定される', async () => {
+  it('初期化時に進行中大会がある場合 activeEvents に設定される', async () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
-      json: async () => ({ event: mockActiveEvent }),
+      json: async () => ({ events: [mockActiveEvent] }),
     })
 
     const { useAdminEvent } = await import('../useAdminEvent')
-    const { activeEvent } = useAdminEvent()
+    const { activeEvents } = useAdminEvent()
 
     await flushPromises()
 
-    expect(activeEvent.value).toEqual(mockActiveEvent)
+    expect(activeEvents.value).toEqual([mockActiveEvent])
   })
 
-  it('createEvent() 成功後に refresh() が呼ばれ activeEvent が更新される', async () => {
+  it('COLLECTING イベントは collectingEvents に含まれる', async () => {
+    mockGetActiveFn.mockResolvedValue({
+      ok: true,
+      json: async () => ({ events: [mockActiveEvent] }),
+    })
+
+    const { useAdminEvent } = await import('../useAdminEvent')
+    const { collectingEvents } = useAdminEvent()
+
+    await flushPromises()
+
+    expect(collectingEvents.value).toEqual([mockActiveEvent])
+  })
+
+  it('STAR_VOTING イベントは ceremonyEvent に設定される', async () => {
+    const ceremonyEvent = { ...mockActiveEvent, phase: 'STAR_VOTING' as const }
+    mockGetActiveFn.mockResolvedValue({
+      ok: true,
+      json: async () => ({ events: [ceremonyEvent] }),
+    })
+
+    const { useAdminEvent } = await import('../useAdminEvent')
+    const { ceremonyEvent: ceremony } = useAdminEvent()
+
+    await flushPromises()
+
+    expect(ceremony.value).toEqual(ceremonyEvent)
+  })
+
+  it('COLLECTING イベントは ceremonyEvent に含まれない', async () => {
+    mockGetActiveFn.mockResolvedValue({
+      ok: true,
+      json: async () => ({ events: [mockActiveEvent] }),
+    })
+
+    const { useAdminEvent } = await import('../useAdminEvent')
+    const { ceremonyEvent } = useAdminEvent()
+
+    await flushPromises()
+
+    expect(ceremonyEvent.value).toBeNull()
+  })
+
+  it('createEvent() 成功後に refresh() が呼ばれ activeEvents が更新される', async () => {
     mockCreateEventFn.mockResolvedValue({
       ok: true,
       json: async () => mockActiveEvent,
     })
     mockGetActiveFn
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ event: null }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ event: mockActiveEvent }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ events: [] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ events: [mockActiveEvent] }) })
 
     const { useAdminEvent } = await import('../useAdminEvent')
-    const { createEvent, activeEvent } = useAdminEvent()
+    const { createEvent, activeEvents } = useAdminEvent()
 
     await flushPromises()
-    expect(activeEvent.value).toBeNull()
+    expect(activeEvents.value).toEqual([])
 
     await createEvent(validCreateParams)
 
-    expect(activeEvent.value).toEqual(mockActiveEvent)
+    expect(activeEvents.value).toEqual([mockActiveEvent])
   })
 
   it('createEvent() 中は isLoading が true になり完了後 false に戻る', async () => {
@@ -144,40 +187,29 @@ describe('useAdminEvent', () => {
     expect(isLoading.value).toBe(false)
   })
 
-  it('advancePhase() 成功後に refresh() が呼ばれ activeEvent.phase が更新される', async () => {
+  it('advancePhase() 成功後に refresh() が呼ばれ activeEvents の phase が更新される', async () => {
     const revealingEvent = { ...mockActiveEvent, phase: 'REVEALING' as const }
     mockGetActiveFn
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ event: mockActiveEvent }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ event: revealingEvent }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ events: [mockActiveEvent] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ events: [revealingEvent] }) })
     mockAdvancePhaseFn.mockResolvedValue({
       ok: true,
       json: async () => ({ id: 'event-1', phase: 'REVEALING' }),
     })
 
     const { useAdminEvent } = await import('../useAdminEvent')
-    const { advancePhase, activeEvent } = useAdminEvent()
+    const { advancePhase, activeEvents } = useAdminEvent()
 
     await flushPromises()
-    expect(activeEvent.value?.phase).toBe('COLLECTING')
+    expect(activeEvents.value[0]?.phase).toBe('COLLECTING')
 
-    await advancePhase()
+    await advancePhase('event-1')
 
-    expect(activeEvent.value?.phase).toBe('REVEALING')
-  })
-
-  it('advancePhase() は activeEvent が null のとき何もしない', async () => {
-    const { useAdminEvent } = await import('../useAdminEvent')
-    const { advancePhase } = useAdminEvent()
-
-    await flushPromises()
-
-    await advancePhase()
-
-    expect(mockAdvancePhaseFn).not.toHaveBeenCalled()
+    expect(activeEvents.value[0]?.phase).toBe('REVEALING')
   })
 
   it('setAbsent() 成功後に refresh() が呼ばれる', async () => {
-    mockGetActiveFn.mockResolvedValue({ ok: true, json: async () => ({ event: mockActiveEvent }) })
+    mockGetActiveFn.mockResolvedValue({ ok: true, json: async () => ({ events: [mockActiveEvent] }) })
     mockSetAbsentFn.mockResolvedValue({ ok: true, json: async () => ({ ok: true }) })
 
     const { useAdminEvent } = await import('../useAdminEvent')
@@ -185,25 +217,14 @@ describe('useAdminEvent', () => {
 
     await flushPromises()
 
-    await setAbsent('p1', true)
+    await setAbsent('event-1', 'p1', true)
 
     expect(mockGetActiveFn).toHaveBeenCalledTimes(2)
   })
 
-  it('setAbsent() は activeEvent が null のとき何もしない', async () => {
-    const { useAdminEvent } = await import('../useAdminEvent')
-    const { setAbsent } = useAdminEvent()
-
-    await flushPromises()
-
-    await setAbsent('p1', true)
-
-    expect(mockSetAbsentFn).not.toHaveBeenCalled()
-  })
-
   it('refresh() が API エラー時に error を設定する', async () => {
     mockGetActiveFn
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ event: null }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ events: [] }) })
       .mockRejectedValueOnce(new Error('network error'))
 
     const { useAdminEvent } = await import('../useAdminEvent')

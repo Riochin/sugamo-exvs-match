@@ -1,5 +1,5 @@
-import { ref, readonly } from 'vue'
-import type { Ref } from 'vue'
+import { ref, readonly, computed } from 'vue'
+import type { Ref, ComputedRef } from 'vue'
 import { client } from '@/api/client'
 
 export interface ScoreEntry {
@@ -8,6 +8,7 @@ export interface ScoreEntry {
   wins: number
   losses: number
   absent: boolean
+  submitted: boolean
 }
 
 export type EventPhase = 'COLLECTING' | 'STAR_VOTING' | 'REVEALING' | 'DONE'
@@ -32,29 +33,40 @@ export interface CreateEventParams {
 }
 
 export interface UseAdminEventReturn {
-  activeEvent: Readonly<Ref<EventWithScores | null>>
+  activeEvents: Readonly<Ref<EventWithScores[]>>
+  collectingEvents: Readonly<ComputedRef<EventWithScores[]>>
+  ceremonyEvent: Readonly<ComputedRef<EventWithScores | null>>
   isLoading: Readonly<Ref<boolean>>
   isInitialLoading: Readonly<Ref<boolean>>
   error: Readonly<Ref<string | null>>
   createEvent(params: CreateEventParams): Promise<void>
-  setAbsent(playerId: string, absent: boolean): Promise<void>
-  advancePhase(): Promise<void>
-  setPhase(phase: EventPhase): Promise<void>
+  setAbsent(eventId: string, playerId: string, absent: boolean): Promise<void>
+  setAbsentBatch(eventId: string, changes: Array<{ playerId: string; absent: boolean }>): Promise<void>
+  advancePhase(eventId: string): Promise<void>
+  setPhase(eventId: string, phase: EventPhase): Promise<void>
   refresh(): Promise<void>
 }
 
 export function useAdminEvent(): UseAdminEventReturn {
-  const activeEvent = ref<EventWithScores | null>(null)
+  const activeEvents = ref<EventWithScores[]>([])
   const isLoading = ref(false)
   const isInitialLoading = ref(true)
   const error = ref<string | null>(null)
+
+  const collectingEvents = computed(() =>
+    activeEvents.value.filter((e) => e.phase === 'COLLECTING'),
+  )
+
+  const ceremonyEvent = computed(() =>
+    activeEvents.value.find((e) => e.phase === 'STAR_VOTING' || e.phase === 'REVEALING') ?? null,
+  )
 
   async function refresh(): Promise<void> {
     try {
       const res = await client.api.events.active.$get()
       if (res.ok) {
         const data = await res.json()
-        activeEvent.value = data.event as EventWithScores | null
+        activeEvents.value = (data as { events: EventWithScores[] }).events
       }
     } catch {
       error.value = 'データの取得に失敗しました'
@@ -90,14 +102,13 @@ export function useAdminEvent(): UseAdminEventReturn {
     }
   }
 
-  async function setAbsent(playerId: string, absent: boolean): Promise<void> {
+  async function setAbsent(eventId: string, playerId: string, absent: boolean): Promise<void> {
     if (isLoading.value) return
-    if (!activeEvent.value) return
     isLoading.value = true
     error.value = null
     try {
       const res = await client.api.events[':id'].absent[':playerId'].$patch({
-        param: { id: activeEvent.value.id, playerId },
+        param: { id: eventId, playerId },
         json: { absent },
       })
       if (!res.ok) {
@@ -113,14 +124,37 @@ export function useAdminEvent(): UseAdminEventReturn {
     }
   }
 
-  async function advancePhase(): Promise<void> {
+  async function setAbsentBatch(
+    eventId: string,
+    changes: Array<{ playerId: string; absent: boolean }>,
+  ): Promise<void> {
+    if (isLoading.value || changes.length === 0) return
+    isLoading.value = true
+    error.value = null
+    try {
+      await Promise.all(
+        changes.map(({ playerId, absent }) =>
+          client.api.events[':id'].absent[':playerId'].$patch({
+            param: { id: eventId, playerId },
+            json: { absent },
+          }),
+        ),
+      )
+      await refresh()
+    } catch {
+      error.value = '欠席状態の更新に失敗しました'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function advancePhase(eventId: string): Promise<void> {
     if (isLoading.value) return
-    if (!activeEvent.value) return
     isLoading.value = true
     error.value = null
     try {
       const res = await client.api.events[':id'].phase.$patch({
-        param: { id: activeEvent.value.id },
+        param: { id: eventId },
       })
       if (!res.ok) {
         const data = await res.json()
@@ -135,14 +169,13 @@ export function useAdminEvent(): UseAdminEventReturn {
     }
   }
 
-  async function setPhase(phase: EventPhase): Promise<void> {
+  async function setPhase(eventId: string, phase: EventPhase): Promise<void> {
     if (isLoading.value) return
-    if (!activeEvent.value) return
     isLoading.value = true
     error.value = null
     try {
       const base = import.meta.env.VITE_API_BASE_URL ?? ''
-      const res = await fetch(`${base}/api/events/${activeEvent.value.id}/force-phase`, {
+      const res = await fetch(`${base}/api/events/${eventId}/force-phase`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -164,12 +197,15 @@ export function useAdminEvent(): UseAdminEventReturn {
   refresh()
 
   return {
-    activeEvent: readonly(activeEvent),
+    activeEvents: readonly(activeEvents),
+    collectingEvents: readonly(collectingEvents),
+    ceremonyEvent: readonly(ceremonyEvent),
     isLoading: readonly(isLoading),
     isInitialLoading: readonly(isInitialLoading),
     error: readonly(error),
     createEvent,
     setAbsent,
+    setAbsentBatch,
     advancePhase,
     setPhase,
     refresh,

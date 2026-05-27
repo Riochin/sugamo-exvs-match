@@ -22,11 +22,11 @@
           {{ error }}
         </p>
 
-        <!-- 大会作成フォーム -->
+        <!-- 大会作成フォーム（セレモニー中でなければ作成可） -->
         <form
-          v-if="activeEvent === null"
+          v-if="ceremonyEvent === null"
           data-testid="create-event-form"
-          class="rounded border border-main bg-dark p-4"
+          class="rounded border border-main bg-dark p-4 mb-4"
           @submit.prevent="onCreateEvent"
         >
           <h2 class="mb-4 text-lg font-semibold">大会を作成する</h2>
@@ -90,34 +90,43 @@
           </button>
         </form>
 
-        <!-- アクティブ大会 -->
-        <template v-else>
-          <div class="rounded border border-main bg-dark p-4">
-            <div class="mb-4">
-              <div class="mb-1 flex items-center gap-2">
-                <h2 class="text-lg font-semibold">{{ activeEvent.name }}</h2>
-                <span class="rounded bg-main px-2 py-0.5 text-xs font-bold text-white">{{ activeEvent.phase }}</span>
-              </div>
-              <p class="text-sm text-gray-400">開催日時: {{ formatDate(activeEvent.heldAt) }}</p>
-              <p v-if="activeEvent.venue" class="text-sm text-gray-400">会場: {{ activeEvent.venue }}</p>
-              <p v-if="activeEvent.hasPromotionRelegation" class="mt-1 text-xs text-accent">昇格・降格あり</p>
-              <p v-if="activeEvent.description" class="mt-2 text-sm text-gray-300">{{ activeEvent.description }}</p>
+        <!-- COLLECTING 中の大会一覧 -->
+        <div
+          v-for="event in collectingEvents"
+          :key="event.id"
+          class="rounded border border-main bg-dark p-4 mb-4"
+        >
+          <div class="mb-4">
+            <div class="mb-1 flex items-center gap-2">
+              <h2 class="text-lg font-semibold">{{ event.name }}</h2>
+              <span class="rounded bg-main px-2 py-0.5 text-xs font-bold text-white">{{ event.phase }}</span>
             </div>
+            <p class="text-sm text-gray-400">開催日時: {{ formatDate(event.heldAt) }}</p>
+            <p v-if="event.venue" class="text-sm text-gray-400">会場: {{ event.venue }}</p>
+            <p v-if="event.hasPromotionRelegation" class="mt-1 text-xs text-accent">昇格・降格あり</p>
+            <p v-if="event.description" class="mt-2 text-sm text-gray-300">{{ event.description }}</p>
+          </div>
 
-            <!-- COLLECTING フェーズ: 参加者一覧 -->
-            <ul v-if="activeEvent.phase === 'COLLECTING'" data-testid="scores-list" class="mb-6 space-y-2">
+          <!-- 参加者一覧 -->
+          <div class="mb-4">
+            <ul data-testid="scores-list" class="space-y-2">
               <li
-                v-for="score in activeEvent.scores"
+                v-for="score in event.scores"
                 :key="score.playerId"
-                class="flex items-center justify-between rounded border border-main bg-[#090014] px-3 py-2"
+                :class="[
+                  'flex items-center justify-between rounded border px-3 py-2',
+                  getPendingAbsent(event.id).has(score.playerId)
+                    ? 'border-amber-500 bg-[#090014]'
+                    : 'border-main bg-[#090014]',
+                ]"
               >
                 <span>{{ score.playerName }}</span>
                 <label class="flex items-center gap-2 text-sm">
                   <input
                     :data-testid="`absent-checkbox-${score.playerId}`"
                     type="checkbox"
-                    :checked="score.absent"
-                    @change="onAbsentChange(score.playerId, !score.absent)"
+                    :checked="effectiveAbsent(event.id, score.playerId, score.absent)"
+                    @change="onAbsentChange(event.id, score.playerId, score.absent)"
                     class="accent-accent"
                   />
                   欠席
@@ -125,51 +134,146 @@
               </li>
             </ul>
 
-            <!-- フェーズ強制変更 -->
-            <div class="border-t border-main pt-4">
-              <p class="mb-2 text-xs text-gray-400">フェーズを強制変更</p>
-              <div class="grid grid-cols-2 gap-2">
-                <button
-                  v-for="phase in allPhases"
-                  :key="phase"
-                  :disabled="isLoading || phase === activeEvent.phase"
-                  :class="[
-                    'w-full rounded px-2 py-2 text-sm font-bold transition-colors disabled:cursor-not-allowed',
-                    phase === activeEvent.phase
-                      ? 'bg-main text-white opacity-60'
-                      : 'border border-main text-main hover:bg-main hover:text-white disabled:opacity-30',
-                  ]"
-                  @click="pendingPhase = phase"
-                >
-                  {{ phase }}
-                </button>
-              </div>
+            <div v-if="getPendingCount(event.id) > 0" class="mt-3 flex gap-2">
+              <button
+                data-testid="submit-absent-btn"
+                :disabled="isLoading"
+                class="flex-1 rounded bg-accent px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+                @click="onSubmitAbsent(event.id)"
+              >
+                <span v-if="absentSubmitting" class="flex items-center justify-center gap-2">
+                  <LoadingSpinner :size="18" :stroke-width="22" />
+                  更新中...
+                </span>
+                <span v-else>出欠を更新する ({{ getPendingCount(event.id) }}件)</span>
+              </button>
+              <button
+                data-testid="reset-absent-btn"
+                :disabled="isLoading"
+                class="rounded border border-main px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+                @click="resetPendingAbsent(event.id)"
+              >
+                リセット
+              </button>
+            </div>
+          </div>
 
-              <!-- 確認UI -->
-              <div v-if="pendingPhase" class="mt-3 rounded border border-accent bg-[#090014] p-3">
-                <p class="mb-3 text-sm">
-                  フェーズを <span class="font-bold text-accent">{{ pendingPhase }}</span> に変更しますか？
-                </p>
-                <div class="flex gap-2">
-                  <button
-                    :disabled="isLoading"
-                    class="flex-1 rounded bg-accent px-3 py-2 text-sm font-bold text-white disabled:opacity-50"
-                    @click="confirmSetPhase"
-                  >
-                    {{ isLoading ? '処理中...' : '変更する' }}
-                  </button>
-                  <button
-                    :disabled="isLoading"
-                    class="flex-1 rounded border border-main px-3 py-2 text-sm font-bold text-white disabled:opacity-50"
-                    @click="pendingPhase = null"
-                  >
-                    キャンセル
-                  </button>
-                </div>
+          <!-- 全員揃ったらSTAR_VOTINGへ進めるボタン -->
+          <div
+            v-if="allSubmitted(event)"
+            class="mb-4 rounded border border-green-600 bg-green-900/20 p-3"
+          >
+            <p class="text-sm text-green-400 mb-2">全員の結果が出揃いました</p>
+            <button
+              data-testid="advance-to-star-voting-btn"
+              :disabled="isLoading"
+              class="w-full rounded bg-main px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+              @click="advancePhase(event.id)"
+            >
+              {{ isLoading ? '処理中...' : '結果を表示する' }}
+            </button>
+          </div>
+
+          <!-- フェーズ強制変更 -->
+          <div class="border-t border-main pt-4">
+            <p class="mb-2 text-xs text-gray-400">フェーズを強制変更</p>
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                v-for="phase in allPhases"
+                :key="phase"
+                :disabled="isLoading || phase === event.phase"
+                :class="[
+                  'w-full rounded px-2 py-2 text-sm font-bold transition-colors disabled:cursor-not-allowed',
+                  phase === event.phase
+                    ? 'bg-main text-white opacity-60'
+                    : 'border border-main text-main hover:bg-main hover:text-white disabled:opacity-30',
+                ]"
+                @click="setPendingPhase(event.id, phase)"
+              >
+                {{ phase }}
+              </button>
+            </div>
+
+            <div v-if="pendingPhaseMap.get(event.id)" class="mt-3 rounded border border-accent bg-[#090014] p-3">
+              <p class="mb-3 text-sm">
+                フェーズを <span class="font-bold text-accent">{{ pendingPhaseMap.get(event.id) }}</span> に変更しますか？
+              </p>
+              <div class="flex gap-2">
+                <button
+                  :disabled="isLoading"
+                  class="flex-1 rounded bg-accent px-3 py-2 text-sm font-bold text-white disabled:opacity-50"
+                  @click="confirmSetPhase(event.id)"
+                >
+                  {{ isLoading ? '処理中...' : '変更する' }}
+                </button>
+                <button
+                  :disabled="isLoading"
+                  class="flex-1 rounded border border-main px-3 py-2 text-sm font-bold text-white disabled:opacity-50"
+                  @click="clearPendingPhase(event.id)"
+                >
+                  キャンセル
+                </button>
               </div>
             </div>
           </div>
-        </template>
+        </div>
+
+        <!-- セレモニーイベント（STAR_VOTING / REVEALING） -->
+        <div v-if="ceremonyEvent" class="rounded border border-main bg-dark p-4 mb-4">
+          <div class="mb-4">
+            <div class="mb-1 flex items-center gap-2">
+              <h2 class="text-lg font-semibold">{{ ceremonyEvent.name }}</h2>
+              <span class="rounded bg-main px-2 py-0.5 text-xs font-bold text-white">{{ ceremonyEvent.phase }}</span>
+            </div>
+            <p class="text-sm text-gray-400">開催日時: {{ formatDate(ceremonyEvent.heldAt) }}</p>
+            <p v-if="ceremonyEvent.venue" class="text-sm text-gray-400">会場: {{ ceremonyEvent.venue }}</p>
+            <p v-if="ceremonyEvent.hasPromotionRelegation" class="mt-1 text-xs text-accent">昇格・降格あり</p>
+            <p v-if="ceremonyEvent.description" class="mt-2 text-sm text-gray-300">{{ ceremonyEvent.description }}</p>
+          </div>
+
+          <!-- フェーズ強制変更 -->
+          <div class="border-t border-main pt-4">
+            <p class="mb-2 text-xs text-gray-400">フェーズを強制変更</p>
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                v-for="phase in allPhases"
+                :key="phase"
+                :disabled="isLoading || phase === ceremonyEvent.phase"
+                :class="[
+                  'w-full rounded px-2 py-2 text-sm font-bold transition-colors disabled:cursor-not-allowed',
+                  phase === ceremonyEvent.phase
+                    ? 'bg-main text-white opacity-60'
+                    : 'border border-main text-main hover:bg-main hover:text-white disabled:opacity-30',
+                ]"
+                @click="setPendingPhase(ceremonyEvent!.id, phase)"
+              >
+                {{ phase }}
+              </button>
+            </div>
+
+            <div v-if="pendingPhaseMap.get(ceremonyEvent.id)" class="mt-3 rounded border border-accent bg-[#090014] p-3">
+              <p class="mb-3 text-sm">
+                フェーズを <span class="font-bold text-accent">{{ pendingPhaseMap.get(ceremonyEvent.id) }}</span> に変更しますか？
+              </p>
+              <div class="flex gap-2">
+                <button
+                  :disabled="isLoading"
+                  class="flex-1 rounded bg-accent px-3 py-2 text-sm font-bold text-white disabled:opacity-50"
+                  @click="confirmSetPhase(ceremonyEvent!.id)"
+                >
+                  {{ isLoading ? '処理中...' : '変更する' }}
+                </button>
+                <button
+                  :disabled="isLoading"
+                  class="flex-1 rounded border border-main px-3 py-2 text-sm font-bold text-white disabled:opacity-50"
+                  @click="clearPendingPhase(ceremonyEvent!.id)"
+                >
+                  キャンセル
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </template>
 
@@ -185,6 +289,7 @@
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAdminEvent } from '@/composables/useAdminEvent'
+import type { EventPhase } from '@/composables/useAdminEvent'
 import { useAuth } from '@/composables/useAuth'
 import { useEventStream } from '@/composables/useEventStream'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
@@ -192,20 +297,104 @@ import PageHeader from '@/components/ui/PageHeader.vue'
 import HelpModal from '@/components/ui/HelpModal.vue'
 
 const router = useRouter()
-const { activeEvent, isLoading, isInitialLoading, error, createEvent, setAbsent, setPhase, refresh } = useAdminEvent()
+const {
+  collectingEvents,
+  ceremonyEvent,
+  isLoading,
+  isInitialLoading,
+  error,
+  createEvent,
+  setAbsentBatch,
+  advancePhase,
+  setPhase,
+  refresh,
+} = useAdminEvent()
 const { currentPlayer } = useAuth()
 const showHelp = ref(false)
 
-const allPhases = ['COLLECTING', 'STAR_VOTING', 'REVEALING', 'DONE'] as const
-type EventPhase = (typeof allPhases)[number]
-const pendingPhase = ref<EventPhase | null>(null)
-const { connect, latestPhaseUpdate } = useEventStream()
+// per-event pending absent changes: Map<eventId, Map<playerId, boolean>>
+const pendingAbsentChanges = ref(new Map<string, Map<string, boolean>>())
 
-async function confirmSetPhase() {
-  if (!pendingPhase.value) return
-  await setPhase(pendingPhase.value)
-  pendingPhase.value = null
+function getPendingAbsent(eventId: string): Map<string, boolean> {
+  return pendingAbsentChanges.value.get(eventId) ?? new Map()
 }
+
+function getPendingCount(eventId: string): number {
+  return getPendingAbsent(eventId).size
+}
+
+function effectiveAbsent(eventId: string, playerId: string, serverAbsent: boolean): boolean {
+  const map = getPendingAbsent(eventId)
+  return map.has(playerId) ? map.get(playerId)! : serverAbsent
+}
+
+function onAbsentChange(eventId: string, playerId: string, serverAbsent: boolean) {
+  const next = !effectiveAbsent(eventId, playerId, serverAbsent)
+  const eventMap = new Map(getPendingAbsent(eventId))
+  if (next === serverAbsent) {
+    eventMap.delete(playerId)
+  } else {
+    eventMap.set(playerId, next)
+  }
+  const newOuter = new Map(pendingAbsentChanges.value)
+  newOuter.set(eventId, eventMap)
+  pendingAbsentChanges.value = newOuter
+}
+
+const absentSubmitting = ref(false)
+
+async function onSubmitAbsent(eventId: string) {
+  const changes = Array.from(getPendingAbsent(eventId).entries()).map(([playerId, absent]) => ({
+    playerId,
+    absent,
+  }))
+  absentSubmitting.value = true
+  try {
+    await setAbsentBatch(eventId, changes)
+    if (!error.value) {
+      const newOuter = new Map(pendingAbsentChanges.value)
+      newOuter.delete(eventId)
+      pendingAbsentChanges.value = newOuter
+    }
+  } finally {
+    absentSubmitting.value = false
+  }
+}
+
+function resetPendingAbsent(eventId: string) {
+  const newOuter = new Map(pendingAbsentChanges.value)
+  newOuter.delete(eventId)
+  pendingAbsentChanges.value = newOuter
+}
+
+function allSubmitted(event: { scores: Array<{ absent: boolean; submitted: boolean }> }): boolean {
+  return event.scores.length > 0 && event.scores.every((s) => s.absent || s.submitted)
+}
+
+const allPhases = ['COLLECTING', 'STAR_VOTING', 'REVEALING', 'DONE'] as const
+
+const pendingPhaseMap = ref(new Map<string, EventPhase>())
+
+function setPendingPhase(eventId: string, phase: EventPhase) {
+  const newMap = new Map(pendingPhaseMap.value)
+  newMap.set(eventId, phase)
+  pendingPhaseMap.value = newMap
+}
+
+function clearPendingPhase(eventId: string) {
+  const newMap = new Map(pendingPhaseMap.value)
+  newMap.delete(eventId)
+  pendingPhaseMap.value = newMap
+}
+
+async function confirmSetPhase(eventId: string) {
+  const phase = pendingPhaseMap.value.get(eventId)
+  if (!phase) return
+  await setPhase(eventId, phase)
+  clearPendingPhase(eventId)
+}
+
+const { connect, latestPhaseUpdate } = useEventStream()
 
 watch(currentPlayer, (player) => {
   if (!player?.isAdmin) router.push('/')
@@ -218,7 +407,7 @@ const venueInput = ref('')
 const descriptionInput = ref('')
 
 watch(
-  () => activeEvent.value?.id,
+  () => ceremonyEvent.value?.id,
   (id) => {
     if (id) connect(id)
   },
@@ -238,10 +427,6 @@ async function onCreateEvent() {
     venue: venueInput.value || undefined,
     description: descriptionInput.value || undefined,
   })
-}
-
-function onAbsentChange(playerId: string, absent: boolean) {
-  setAbsent(playerId, absent)
 }
 
 function formatDate(iso: string): string {
