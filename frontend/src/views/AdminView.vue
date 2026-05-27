@@ -367,7 +367,7 @@ function resetPendingAbsent(eventId: string) {
   pendingAbsentChanges.value = newOuter
 }
 
-function allSubmitted(event: { scores: Array<{ absent: boolean; submitted: boolean }> }): boolean {
+function allSubmitted(event: { scores: ReadonlyArray<{ absent: boolean; submitted: boolean }> }): boolean {
   return event.scores.length > 0 && event.scores.every((s) => s.absent || s.submitted)
 }
 

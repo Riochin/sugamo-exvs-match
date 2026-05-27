@@ -34,8 +34,8 @@ export interface CreateEventParams {
 
 export interface UseAdminEventReturn {
   activeEvents: Readonly<Ref<EventWithScores[]>>
-  collectingEvents: Readonly<ComputedRef<EventWithScores[]>>
-  ceremonyEvent: Readonly<ComputedRef<EventWithScores | null>>
+  collectingEvents: ComputedRef<EventWithScores[]>
+  ceremonyEvent: ComputedRef<EventWithScores | null>
   isLoading: Readonly<Ref<boolean>>
   isInitialLoading: Readonly<Ref<boolean>>
   error: Readonly<Ref<string | null>>
@@ -66,7 +66,7 @@ export function useAdminEvent(): UseAdminEventReturn {
       const res = await client.api.events.active.$get()
       if (res.ok) {
         const data = await res.json()
-        activeEvents.value = (data as { events: EventWithScores[] }).events
+        activeEvents.value = (data as unknown as { events: EventWithScores[] }).events
       }
     } catch {
       error.value = 'データの取得に失敗しました'
@@ -197,9 +197,9 @@ export function useAdminEvent(): UseAdminEventReturn {
   refresh()
 
   return {
-    activeEvents: readonly(activeEvents),
-    collectingEvents: readonly(collectingEvents),
-    ceremonyEvent: readonly(ceremonyEvent),
+    activeEvents: readonly(activeEvents) as unknown as Readonly<Ref<EventWithScores[]>>,
+    collectingEvents,
+    ceremonyEvent,
     isLoading: readonly(isLoading),
     isInitialLoading: readonly(isInitialLoading),
     error: readonly(error),
