@@ -62,7 +62,7 @@ export function useScoreEntry(event: EventWithScores): UseScoreEntryReturn {
           eventId: event.id,
           matches: matches.value!,
           wins: wins.value!,
-        } as unknown as { matches: number; wins: number },
+        },
       })
       if (res.ok) {
         view.value = 'submitted'
