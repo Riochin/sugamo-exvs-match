@@ -41,9 +41,9 @@ vi.mock('@/components/event/ActiveEventCard.vue', () => ({
 vi.mock('@/components/score/ScoreEntryModal.vue', () => ({
   default: {
     name: 'ScoreEntryModal',
-    props: ['eventId', 'visible', 'progressUpdate'],
+    props: ['event', 'visible', 'progressUpdate'],
     emits: ['close'],
-    template: '<div v-if="visible" data-testid="score-entry-modal" :data-event-id="eventId"></div>',
+    template: '<div v-if="visible" data-testid="score-entry-modal" :data-event-id="event?.id"></div>',
   },
 }))
 
@@ -95,7 +95,7 @@ describe('TournamentView', () => {
 
     mockGetActiveFn.mockResolvedValue({
       ok: true,
-      json: async () => ({ event: null }),
+      json: async () => ({ events: [] }),
     })
     mockGetPastFn.mockResolvedValue({
       ok: true,
@@ -120,15 +120,17 @@ describe('TournamentView', () => {
     expect(wrapper.find('[data-testid="active-event-card"]').exists()).toBe(false)
   })
 
-  it('アクティブイベントがある場合に useEventStream.connect が呼ばれる', async () => {
+  it('スコア入力モーダルを開くと connect が呼ばれる', async () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
-      json: async () => ({ event: baseEvent }),
+      json: async () => ({ events: [baseEvent] }),
     })
 
     const router = createTestRouter()
-    mount(TournamentView, { global: { plugins: [router] } })
+    const wrapper = mount(TournamentView, { global: { plugins: [router] } })
     await flushPromises()
+
+    await wrapper.find('[data-testid="open-score-modal-btn"]').trigger('click')
 
     expect(mockConnect).toHaveBeenCalledWith('event-1')
   })
@@ -136,7 +138,7 @@ describe('TournamentView', () => {
   it('フェーズが COLLECTING のとき ActiveEventCard を表示する', async () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
-      json: async () => ({ event: baseEvent }),
+      json: async () => ({ events: [baseEvent] }),
     })
 
     const router = createTestRouter()
@@ -149,7 +151,7 @@ describe('TournamentView', () => {
   it('ActiveEventCard に event.id が渡される', async () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
-      json: async () => ({ event: baseEvent }),
+      json: async () => ({ events: [baseEvent] }),
     })
 
     const router = createTestRouter()
@@ -163,7 +165,7 @@ describe('TournamentView', () => {
   it('open-score-modal-btn クリックで ScoreEntryModal が表示される', async () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
-      json: async () => ({ event: baseEvent }),
+      json: async () => ({ events: [baseEvent] }),
     })
 
     const router = createTestRouter()
@@ -175,28 +177,28 @@ describe('TournamentView', () => {
     expect(wrapper.find('[data-testid="score-entry-modal"]').exists()).toBe(true)
   })
 
-  it('アクティブイベントがある場合は常に ActiveEventCard を表示する', async () => {
+  it('REVEALING フェーズの大会がある場合は no-event-message を表示しない', async () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
-      json: async () => ({
-        event: { ...baseEvent, phase: 'REVEALING' as const },
-      }),
+      json: async () => ({ events: [{ ...baseEvent, phase: 'REVEALING' as const }] }),
     })
 
     const router = createTestRouter()
+    await router.push('/')
     const wrapper = mount(TournamentView, { global: { plugins: [router] } })
     await flushPromises()
 
-    expect(wrapper.find('[data-testid="active-event-card"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="no-event-message"]').exists()).toBe(false)
   })
 
-  it('SSE phase_update で COLLECTING 以外に変化すると isScoreModalOpen が false になる', async () => {
+  it('SSE phase_update で COLLECTING 以外に変化すると score modal が閉じる', async () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
-      json: async () => ({ event: baseEvent }),
+      json: async () => ({ events: [baseEvent] }),
     })
 
     const router = createTestRouter()
+    await router.push('/')
     const wrapper = mount(TournamentView, { global: { plugins: [router] } })
     await flushPromises()
 
@@ -212,7 +214,7 @@ describe('TournamentView', () => {
   it('result_ready 受信後に router.replace で結果発表ページへ遷移する', async () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
-      json: async () => ({ event: baseEvent }),
+      json: async () => ({ events: [{ ...baseEvent, phase: 'STAR_VOTING' as const }] }),
     })
 
     const router = createTestRouter()
@@ -239,13 +241,15 @@ describe('TournamentView', () => {
   it('SSE phase_update で STAR_VOTING を受信すると /events/:id/star-voting へ遷移する', async () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
-      json: async () => ({ event: baseEvent }),
+      json: async () => ({ events: [baseEvent] }),
     })
 
     const router = createTestRouter()
     await router.push('/')
-    mount(TournamentView, { global: { plugins: [router] } })
+    const wrapper = mount(TournamentView, { global: { plugins: [router] } })
     await flushPromises()
+
+    await wrapper.find('[data-testid="open-score-modal-btn"]').trigger('click')
 
     mockCurrentPhase.value = 'STAR_VOTING'
     await flushPromises()
@@ -257,7 +261,7 @@ describe('TournamentView', () => {
     mockGetActiveFn.mockResolvedValue({
       ok: true,
       json: async () => ({
-        event: { ...baseEvent, phase: 'STAR_VOTING' as const },
+        events: [{ ...baseEvent, phase: 'STAR_VOTING' as const }],
       }),
     })
 
@@ -324,7 +328,7 @@ describe('TournamentView', () => {
     mockGetPastFn.mockRejectedValue(new Error('network error'))
     mockGetActiveFn.mockResolvedValue({
       ok: true,
-      json: async () => ({ event: baseEvent }),
+      json: async () => ({ events: [baseEvent] }),
     })
 
     const router = createTestRouter()

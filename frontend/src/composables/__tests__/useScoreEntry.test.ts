@@ -1,10 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
-import { flushPromises } from '@vue/test-utils'
+import type { EventWithScores } from '@/composables/useAdminEvent'
 
-const mockGetActiveFn = vi.fn()
 const mockScoresPostFn = vi.fn()
 const mockCurrentPlayer = ref<{ playerId: string; name: string; isAdmin: boolean } | null>(null)
+
+const mockEvent: EventWithScores = {
+  id: 'event-1',
+  name: 'テスト大会',
+  hasPromotionRelegation: false,
+  venue: null,
+  description: null,
+  phase: 'COLLECTING',
+  heldAt: '2026-05-12T00:00:00.000Z',
+  scores: [],
+}
 
 describe('useScoreEntry', () => {
   beforeEach(() => {
@@ -12,9 +22,6 @@ describe('useScoreEntry', () => {
     vi.doMock('@/api/client', () => ({
       client: {
         api: {
-          events: {
-            active: { $get: mockGetActiveFn },
-          },
           scores: {
             $post: mockScoresPostFn,
           },
@@ -27,20 +34,14 @@ describe('useScoreEntry', () => {
       }),
     }))
 
-    mockGetActiveFn.mockReset()
     mockScoresPostFn.mockReset()
     mockCurrentPlayer.value = { playerId: 'p1', name: 'Player1', isAdmin: false }
-
-    mockGetActiveFn.mockResolvedValue({
-      ok: true,
-      json: async () => ({ event: null }),
-    })
   })
 
   describe('isValid', () => {
     it('wins > matches のとき isValid = false', async () => {
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { matches, wins, isValid } = useScoreEntry()
+      const { matches, wins, isValid } = useScoreEntry(mockEvent)
 
       matches.value = 3
       wins.value = 5
@@ -50,7 +51,7 @@ describe('useScoreEntry', () => {
 
     it('wins <= matches のとき isValid = true', async () => {
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { matches, wins, isValid } = useScoreEntry()
+      const { matches, wins, isValid } = useScoreEntry(mockEvent)
 
       matches.value = 5
       wins.value = 3
@@ -60,7 +61,7 @@ describe('useScoreEntry', () => {
 
     it('wins === matches のとき isValid = true', async () => {
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { matches, wins, isValid } = useScoreEntry()
+      const { matches, wins, isValid } = useScoreEntry(mockEvent)
 
       matches.value = 3
       wins.value = 3
@@ -70,7 +71,7 @@ describe('useScoreEntry', () => {
 
     it('matches が null のとき isValid = false', async () => {
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { wins, isValid } = useScoreEntry()
+      const { wins, isValid } = useScoreEntry(mockEvent)
 
       wins.value = 3
 
@@ -79,7 +80,7 @@ describe('useScoreEntry', () => {
 
     it('wins が null のとき isValid = false', async () => {
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { matches, isValid } = useScoreEntry()
+      const { matches, isValid } = useScoreEntry(mockEvent)
 
       matches.value = 5
 
@@ -88,7 +89,7 @@ describe('useScoreEntry', () => {
 
     it('matches が負数のとき isValid = false', async () => {
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { matches, wins, isValid } = useScoreEntry()
+      const { matches, wins, isValid } = useScoreEntry(mockEvent)
 
       matches.value = -1
       wins.value = 0
@@ -100,7 +101,7 @@ describe('useScoreEntry', () => {
   describe('confirmScore / cancelConfirm', () => {
     it('isValid のとき confirmScore() で view が confirming になる', async () => {
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { matches, wins, view, confirmScore } = useScoreEntry()
+      const { matches, wins, view, confirmScore } = useScoreEntry(mockEvent)
 
       matches.value = 5
       wins.value = 3
@@ -111,7 +112,7 @@ describe('useScoreEntry', () => {
 
     it('isValid でないとき confirmScore() は view を変えない', async () => {
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { matches, wins, view, confirmScore } = useScoreEntry()
+      const { matches, wins, view, confirmScore } = useScoreEntry(mockEvent)
 
       matches.value = 3
       wins.value = 5
@@ -122,7 +123,7 @@ describe('useScoreEntry', () => {
 
     it('cancelConfirm() で view が form に戻る', async () => {
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { matches, wins, view, confirmScore, cancelConfirm } = useScoreEntry()
+      const { matches, wins, view, confirmScore, cancelConfirm } = useScoreEntry(mockEvent)
 
       matches.value = 5
       wins.value = 3
@@ -134,14 +135,14 @@ describe('useScoreEntry', () => {
   })
 
   describe('submitScore', () => {
-    it('送信成功後に view = submitted となる', async () => {
+    it('送信成功後に view = submitted となり eventId を含む body で POST される', async () => {
       mockScoresPostFn.mockResolvedValue({
         ok: true,
         json: async () => ({ completedCount: 1, totalCount: 3 }),
       })
 
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { matches, wins, view, submitScore } = useScoreEntry()
+      const { matches, wins, view, submitScore } = useScoreEntry(mockEvent)
 
       matches.value = 5
       wins.value = 3
@@ -149,7 +150,7 @@ describe('useScoreEntry', () => {
       await submitScore()
 
       expect(view.value).toBe('submitted')
-      expect(mockScoresPostFn).toHaveBeenCalledWith({ json: { matches: 5, wins: 3 } })
+      expect(mockScoresPostFn).toHaveBeenCalledWith({ json: { eventId: 'event-1', matches: 5, wins: 3 } })
     })
 
     it('API エラー時に error ref にメッセージがセットされ view = form に戻る', async () => {
@@ -159,7 +160,7 @@ describe('useScoreEntry', () => {
       })
 
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { matches, wins, view, error, submitScore } = useScoreEntry()
+      const { matches, wins, view, error, submitScore } = useScoreEntry(mockEvent)
 
       matches.value = 5
       wins.value = 3
@@ -174,7 +175,7 @@ describe('useScoreEntry', () => {
       mockScoresPostFn.mockRejectedValue(new Error('network error'))
 
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { matches, wins, error, submitScore } = useScoreEntry()
+      const { matches, wins, error, submitScore } = useScoreEntry(mockEvent)
 
       matches.value = 5
       wins.value = 3
@@ -186,7 +187,7 @@ describe('useScoreEntry', () => {
 
     it('isValid = false のとき submitScore() は API を呼ばない', async () => {
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { matches, wins, submitScore } = useScoreEntry()
+      const { matches, wins, submitScore } = useScoreEntry(mockEvent)
 
       matches.value = 3
       wins.value = 5
@@ -201,7 +202,7 @@ describe('useScoreEntry', () => {
       mockScoresPostFn.mockReturnValue(new Promise((r) => { resolvePost = r }))
 
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { matches, wins, isSubmitting, submitScore } = useScoreEntry()
+      const { matches, wins, isSubmitting, submitScore } = useScoreEntry(mockEvent)
 
       matches.value = 5
       wins.value = 3
@@ -224,7 +225,7 @@ describe('useScoreEntry', () => {
       })
 
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { matches, wins, view, submitScore, editScore } = useScoreEntry()
+      const { matches, wins, view, submitScore, editScore } = useScoreEntry(mockEvent)
 
       matches.value = 5
       wins.value = 3
@@ -241,47 +242,25 @@ describe('useScoreEntry', () => {
 
   describe('isAbsent', () => {
     it('absent=true プレイヤーのとき isAbsent = true に初期化される', async () => {
-      mockGetActiveFn.mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          event: {
-            id: 'event-1',
-            phase: 'COLLECTING',
-            heldAt: '2026-05-12T00:00:00.000Z',
-            scores: [
-              { playerId: 'p1', playerName: 'Player1', wins: 0, losses: 0, absent: true, submitted: false },
-            ],
-          },
-        }),
-      })
+      const event: EventWithScores = {
+        ...mockEvent,
+        scores: [{ playerId: 'p1', playerName: 'Player1', wins: 0, losses: 0, absent: true, submitted: false }],
+      }
 
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { isAbsent } = useScoreEntry()
-
-      await flushPromises()
+      const { isAbsent } = useScoreEntry(event)
 
       expect(isAbsent.value).toBe(true)
     })
 
     it('absent=false プレイヤーのとき isAbsent = false のまま', async () => {
-      mockGetActiveFn.mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          event: {
-            id: 'event-1',
-            phase: 'COLLECTING',
-            heldAt: '2026-05-12T00:00:00.000Z',
-            scores: [
-              { playerId: 'p1', playerName: 'Player1', wins: 0, losses: 0, absent: false, submitted: false },
-            ],
-          },
-        }),
-      })
+      const event: EventWithScores = {
+        ...mockEvent,
+        scores: [{ playerId: 'p1', playerName: 'Player1', wins: 0, losses: 0, absent: false, submitted: false }],
+      }
 
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { isAbsent } = useScoreEntry()
-
-      await flushPromises()
+      const { isAbsent } = useScoreEntry(event)
 
       expect(isAbsent.value).toBe(false)
     })
@@ -290,9 +269,7 @@ describe('useScoreEntry', () => {
       mockCurrentPlayer.value = null
 
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { isAbsent } = useScoreEntry()
-
-      await flushPromises()
+      const { isAbsent } = useScoreEntry(mockEvent)
 
       expect(isAbsent.value).toBe(false)
     })
@@ -300,70 +277,37 @@ describe('useScoreEntry', () => {
 
   describe('view の初期化（画面更新後の復元）', () => {
     it('submitted=true のスコアレコードがあるとき view = submitted に初期化される', async () => {
-      mockGetActiveFn.mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          event: {
-            id: 'event-1',
-            phase: 'COLLECTING',
-            heldAt: '2026-05-12T00:00:00.000Z',
-            scores: [
-              { playerId: 'p1', playerName: 'Player1', wins: 3, losses: 2, absent: false, submitted: true },
-            ],
-          },
-        }),
-      })
+      const event: EventWithScores = {
+        ...mockEvent,
+        scores: [{ playerId: 'p1', playerName: 'Player1', wins: 3, losses: 2, absent: false, submitted: true }],
+      }
 
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { view } = useScoreEntry()
-
-      await flushPromises()
+      const { view } = useScoreEntry(event)
 
       expect(view.value).toBe('submitted')
     })
 
     it('submitted=false のスコアレコードがあるとき view = form のまま', async () => {
-      mockGetActiveFn.mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          event: {
-            id: 'event-1',
-            phase: 'COLLECTING',
-            heldAt: '2026-05-12T00:00:00.000Z',
-            scores: [
-              { playerId: 'p1', playerName: 'Player1', wins: 0, losses: 0, absent: false, submitted: false },
-            ],
-          },
-        }),
-      })
+      const event: EventWithScores = {
+        ...mockEvent,
+        scores: [{ playerId: 'p1', playerName: 'Player1', wins: 0, losses: 0, absent: false, submitted: false }],
+      }
 
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { view } = useScoreEntry()
-
-      await flushPromises()
+      const { view } = useScoreEntry(event)
 
       expect(view.value).toBe('form')
     })
 
     it('スコアレコードが自プレイヤー以外のみのとき view = form のまま', async () => {
-      mockGetActiveFn.mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          event: {
-            id: 'event-1',
-            phase: 'COLLECTING',
-            heldAt: '2026-05-12T00:00:00.000Z',
-            scores: [
-              { playerId: 'p2', playerName: 'Other', wins: 5, losses: 1, absent: false, submitted: true },
-            ],
-          },
-        }),
-      })
+      const event: EventWithScores = {
+        ...mockEvent,
+        scores: [{ playerId: 'p2', playerName: 'Other', wins: 5, losses: 1, absent: false, submitted: true }],
+      }
 
       const { useScoreEntry } = await import('../useScoreEntry')
-      const { view } = useScoreEntry()
-
-      await flushPromises()
+      const { view } = useScoreEntry(event)
 
       expect(view.value).toBe('form')
     })
