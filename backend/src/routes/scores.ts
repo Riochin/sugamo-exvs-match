@@ -5,6 +5,7 @@ import { authMiddleware, type Variables } from '../middleware/auth.js'
 import { scoreService } from '../services/score-service.js'
 
 const submitScoreSchema = z.object({
+  eventId: z.string().min(1),
   matches: z.number().int().min(0),
   wins: z.number().int().min(0),
 }).refine((data) => data.wins <= data.matches, {
@@ -13,17 +14,17 @@ const submitScoreSchema = z.object({
 })
 
 function errorToStatus(code: string): 404 | 409 {
-  if (code === 'NO_ACTIVE_EVENT' || code === 'SCORE_NOT_FOUND') return 404
+  if (code === 'EVENT_NOT_FOUND' || code === 'SCORE_NOT_FOUND') return 404
   return 409
 }
 
 export const scoresRoute = new Hono<{ Variables: Variables }>()
   .use('/*', authMiddleware)
   .post('/', zValidator('json', submitScoreSchema), async (c) => {
-    const { matches, wins } = c.req.valid('json')
+    const { eventId, matches, wins } = c.req.valid('json')
     const { sub: playerId } = c.get('jwtPayload')
 
-    const result = await scoreService.submitScore({ playerId, matches, wins })
+    const result = await scoreService.submitScore({ eventId, playerId, matches, wins })
 
     if ('code' in result) {
       return c.json({ error: result.code }, errorToStatus(result.code))

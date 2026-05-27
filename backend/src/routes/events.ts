@@ -50,8 +50,8 @@ export const eventsRoute = new Hono()
     return c.json(result)
   })
   .get('/active', async (c) => {
-    const event = await eventService.getActiveEvent()
-    return c.json({ event })
+    const events = await eventService.getActiveEvents()
+    return c.json({ events })
   })
   .get('/', async (c) => {
     const events = await eventService.listDoneEvents()

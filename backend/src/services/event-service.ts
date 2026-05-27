@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto'
-import { and, eq, or } from 'drizzle-orm'
+import { and, eq, inArray, ne, or } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import { events, players, scores } from '../db/schema.js'
 import { hub } from '../routes/stream.js'
@@ -42,6 +42,7 @@ export type EventError =
   | { code: 'PLAYER_NOT_FOUND' }
   | { code: 'INVALID_PHASE_TRANSITION'; current: EventPhase }
   | { code: 'PHASE_NOT_COLLECTING'; current: EventPhase }
+  | { code: 'CEREMONY_IN_PROGRESS' }
 
 const PHASE_MAP: Partial<Record<EventPhase, EventPhase>> = {
   COLLECTING: 'STAR_VOTING',
@@ -60,13 +61,7 @@ export const eventService = {
     const activeEvents = await db
       .select({ id: events.id })
       .from(events)
-      .where(
-        or(
-          eq(events.phase, 'COLLECTING'),
-          eq(events.phase, 'STAR_VOTING'),
-          eq(events.phase, 'REVEALING'),
-        ),
-      )
+      .where(or(eq(events.phase, 'STAR_VOTING'), eq(events.phase, 'REVEALING')))
 
     if (activeEvents.length > 0) {
       return { code: 'ACTIVE_EVENT_EXISTS' }
@@ -123,8 +118,8 @@ export const eventService = {
     }
   },
 
-  async getActiveEvent(): Promise<EventWithScores | null> {
-    const [event] = await db
+  async getActiveEvents(): Promise<EventWithScores[]> {
+    const activeEvents = await db
       .select()
       .from(events)
       .where(
@@ -135,10 +130,12 @@ export const eventService = {
         ),
       )
 
-    if (!event) return null
+    if (activeEvents.length === 0) return []
 
-    const eventScores = await db
+    const eventIds = activeEvents.map((e) => e.id)
+    const allScores = await db
       .select({
+        eventId: scores.eventId,
         playerId: scores.playerId,
         playerName: players.name,
         wins: scores.wins,
@@ -148,9 +145,9 @@ export const eventService = {
       })
       .from(scores)
       .innerJoin(players, eq(scores.playerId, players.id))
-      .where(eq(scores.eventId, event.id))
+      .where(inArray(scores.eventId, eventIds))
 
-    return {
+    return activeEvents.map((event) => ({
       id: event.id,
       name: event.name,
       hasPromotionRelegation: event.hasPromotionRelegation,
@@ -158,8 +155,8 @@ export const eventService = {
       description: event.description,
       phase: event.phase as EventPhase,
       heldAt: event.heldAt.toISOString(),
-      scores: eventScores,
-    }
+      scores: allScores.filter((s) => s.eventId === event.id),
+    }))
   },
 
   async listDoneEvents(): Promise<EventSummary[]> {
@@ -222,6 +219,21 @@ export const eventService = {
     const nextPhase = PHASE_MAP[event.phase as EventPhase]
     if (!nextPhase) {
       return { code: 'INVALID_PHASE_TRANSITION', current: event.phase as EventPhase }
+    }
+
+    if (nextPhase === 'STAR_VOTING') {
+      const ceremony = await db
+        .select({ id: events.id })
+        .from(events)
+        .where(
+          and(
+            or(eq(events.phase, 'STAR_VOTING'), eq(events.phase, 'REVEALING')),
+            ne(events.id, params.eventId),
+          ),
+        )
+      if (ceremony.length > 0) {
+        return { code: 'CEREMONY_IN_PROGRESS' }
+      }
     }
 
     await db.update(events).set({ phase: nextPhase }).where(eq(events.id, params.eventId))

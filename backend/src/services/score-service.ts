@@ -1,4 +1,4 @@
-import { and, count, eq, or } from 'drizzle-orm'
+import { and, count, eq } from 'drizzle-orm'
 import { db } from '../db/client.js'
 import { events, scores } from '../db/schema.js'
 import { hub } from '../routes/stream.js'
@@ -12,7 +12,7 @@ export interface SubmitScoreResult {
 }
 
 export type ScoreError =
-  | { code: 'NO_ACTIVE_EVENT' }
+  | { code: 'EVENT_NOT_FOUND' }
   | { code: 'PHASE_NOT_COLLECTING'; current: EventPhase }
   | { code: 'PLAYER_ABSENT' }
   | { code: 'SCORE_NOT_FOUND' }
@@ -25,26 +25,22 @@ export type AdminUpdateScoreError =
 
 export const scoreService = {
   async submitScore(params: {
+    eventId: string
     playerId: string
     matches: number
     wins: number
   }): Promise<SubmitScoreResult | ScoreError> {
-    const { playerId, matches, wins } = params
+    const { eventId, playerId, matches, wins } = params
 
-    const [activeEvent] = await db
-      .select()
-      .from(events)
-      .where(or(eq(events.phase, 'COLLECTING'), eq(events.phase, 'REVEALING')))
+    const [event] = await db.select().from(events).where(eq(events.id, eventId))
 
-    if (!activeEvent) {
-      return { code: 'NO_ACTIVE_EVENT' }
+    if (!event) {
+      return { code: 'EVENT_NOT_FOUND' }
     }
 
-    if (activeEvent.phase !== 'COLLECTING') {
-      return { code: 'PHASE_NOT_COLLECTING', current: activeEvent.phase as EventPhase }
+    if (event.phase !== 'COLLECTING') {
+      return { code: 'PHASE_NOT_COLLECTING', current: event.phase as EventPhase }
     }
-
-    const eventId = activeEvent.id
 
     const [scoreRecord] = await db
       .select()
@@ -80,11 +76,6 @@ export const scoreService = {
     const allCompleted = totalCount > 0 && completedCount === totalCount
 
     await hub.broadcast(eventId, 'progress_update', { completedCount, totalCount })
-
-    if (allCompleted) {
-      await db.update(events).set({ phase: 'STAR_VOTING' }).where(eq(events.id, eventId))
-      await hub.broadcast(eventId, 'phase_update', { eventId, phase: 'STAR_VOTING' })
-    }
 
     return { eventId, completedCount, totalCount, allCompleted }
   },
