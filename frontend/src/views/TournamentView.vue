@@ -5,7 +5,7 @@
     <HelpModal :visible="showHelp" title="大会の使い方" @close="showHelp = false">
       <div class="text-sm text-white/70 text-left space-y-2">
         <p>① 試合後に<span class="text-star font-semibold">スコア入力ボタン</span>で結果を登録します</p>
-        <p>② <span class="text-star font-semibold">全員が入力を完了</span>すると自動的に次のフェーズへ移ります</p>
+        <p>② <span class="text-star font-semibold">全員が入力を完了</span>したら管理者が次のフェーズへ進めます</p>
         <p>③ 下のリストから<span class="text-star font-semibold">過去の大会結果</span>をいつでも確認できます</p>
       </div>
     </HelpModal>
@@ -16,14 +16,19 @@
     </div>
 
     <template v-else>
-      <div v-if="!activeEvent" data-testid="no-event-message" class="text-center py-8 text-dark">
+      <div v-if="collectingEvents.length === 0 && !ceremonyEvent" data-testid="no-event-message" class="text-center py-8 text-dark">
         <p class="text-base font-semibold">大会が開始されていません</p>
         <p class="text-sm mt-1">しばらくお待ちください</p>
       </div>
 
-      <template v-else>
-        <ActiveEventCard :event="activeEvent" @open-score-modal="isScoreModalOpen = true" />
-      </template>
+      <div class="space-y-4">
+        <ActiveEventCard
+          v-for="event in collectingEvents"
+          :key="event.id"
+          :event="event"
+          @open-score-modal="openScoreModal(event)"
+        />
+      </div>
 
       <section v-if="pastEvents.length > 0" class="mt-6">
         <h2 class="text-sm font-bold mb-3 text-dark border-b border-dark pb-2">
@@ -58,11 +63,11 @@
       />
 
       <ScoreEntryModal
-        v-if="activeEvent && phase === 'COLLECTING'"
-        :event-id="activeEvent.id"
-        :visible="isScoreModalOpen"
+        v-if="selectedEventForScore"
+        :event="selectedEventForScore"
+        :visible="true"
         :progress-update="progressUpdate"
-        @close="isScoreModalOpen = false"
+        @close="closeScoreModal"
       />
     </template>
     </div>
@@ -74,23 +79,13 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { client } from '@/api/client'
 import { useEventStream } from '@/composables/useEventStream'
+import type { EventWithScores } from '@/composables/useAdminEvent'
 import ActiveEventCard from '@/components/event/ActiveEventCard.vue'
 import PastEventModal from '@/components/event/PastEventModal.vue'
 import ScoreEntryModal from '@/components/score/ScoreEntryModal.vue'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 import PageHeader from '@/components/ui/PageHeader.vue'
 import HelpModal from '@/components/ui/HelpModal.vue'
-
-interface ActiveEvent {
-  id: string
-  phase: 'COLLECTING' | 'STAR_VOTING' | 'REVEALING' | 'DONE'
-  heldAt: string
-  name: string
-  hasPromotionRelegation: boolean
-  venue: string | null
-  description: string | null
-  scores: unknown[]
-}
 
 interface EventSummary {
   id: string
@@ -104,32 +99,52 @@ interface EventSummary {
 
 const router = useRouter()
 const showHelp = ref(false)
-const { progressUpdate, resultReady, currentPhase, connect } = useEventStream()
+const { progressUpdate, resultReady, currentPhase, connect, disconnect } = useEventStream()
 
 const isLoading = ref(true)
-const activeEvent = ref<ActiveEvent | null>(null)
-const initialPhase = ref<'COLLECTING' | 'STAR_VOTING' | 'REVEALING' | 'DONE' | null>(null)
+const activeEvents = ref<EventWithScores[]>([])
 const pastEvents = ref<EventSummary[]>([])
 const selectedEvent = ref<EventSummary | null>(null)
-const isScoreModalOpen = ref(false)
+const selectedEventForScore = ref<EventWithScores | null>(null)
 
-const phase = computed(() => currentPhase.value ?? initialPhase.value)
+const collectingEvents = computed(() =>
+  activeEvents.value.filter((e) => e.phase === 'COLLECTING'),
+)
+
+const ceremonyEvent = computed(() =>
+  activeEvents.value.find((e) => e.phase === 'STAR_VOTING' || e.phase === 'REVEALING') ?? null,
+)
+
+function openScoreModal(event: EventWithScores): void {
+  selectedEventForScore.value = event
+  connect(event.id)
+}
+
+function closeScoreModal(): void {
+  selectedEventForScore.value = null
+  if (ceremonyEvent.value) {
+    connect(ceremonyEvent.value.id)
+  } else {
+    disconnect()
+  }
+}
 
 watch(resultReady, (ready) => {
-  if (ready && activeEvent.value) {
-    router.replace(`/events/${activeEvent.value.id}/result`)
+  if (ready && ceremonyEvent.value) {
+    router.replace(`/events/${ceremonyEvent.value.id}/result`)
   }
 })
 
 watch(currentPhase, (newPhase) => {
+  const eventId = selectedEventForScore.value?.id ?? ceremonyEvent.value?.id
   if (newPhase !== 'COLLECTING') {
-    isScoreModalOpen.value = false
+    selectedEventForScore.value = null
   }
-  if (newPhase === 'STAR_VOTING' && activeEvent.value) {
-    router.replace(`/events/${activeEvent.value.id}/star-voting`)
+  if (newPhase === 'STAR_VOTING' && eventId) {
+    router.replace(`/events/${eventId}/star-voting`)
   }
-  if (newPhase === 'REVEALING' && activeEvent.value) {
-    router.replace(`/events/${activeEvent.value.id}/result`)
+  if (newPhase === 'REVEALING' && eventId) {
+    router.replace(`/events/${eventId}/result`)
   }
 })
 
@@ -147,23 +162,24 @@ onMounted(async () => {
 
     if (activeRes.status === 'fulfilled' && activeRes.value.ok) {
       const data = await activeRes.value.json()
-      const event = (data as { event: ActiveEvent | null }).event
-      if (!event) return
+      const events = (data as unknown as { events: EventWithScores[] }).events
+      activeEvents.value = events
 
-      activeEvent.value = event
-      initialPhase.value = event.phase
+      const ceremony = events.find((e) => e.phase === 'STAR_VOTING' || e.phase === 'REVEALING')
 
-      if (event.phase === 'STAR_VOTING') {
-        router.replace(`/events/${event.id}/star-voting`)
+      if (ceremony?.phase === 'STAR_VOTING') {
+        router.replace(`/events/${ceremony.id}/star-voting`)
         return
       }
 
-      if (event.phase === 'REVEALING') {
-        router.replace(`/events/${event.id}/result`)
+      if (ceremony?.phase === 'REVEALING') {
+        router.replace(`/events/${ceremony.id}/result`)
         return
       }
 
-      connect(event.id)
+      if (ceremony) {
+        connect(ceremony.id)
+      }
     }
   } finally {
     isLoading.value = false
