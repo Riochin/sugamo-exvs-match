@@ -2,6 +2,7 @@ import { ref, computed, readonly } from 'vue'
 import type { Ref } from 'vue'
 import { client } from '@/api/client'
 import { useAuth } from '@/composables/useAuth'
+import type { EventWithScores } from '@/composables/useAdminEvent'
 
 export type ScoreEntryView = 'form' | 'confirming' | 'submitted'
 
@@ -19,14 +20,18 @@ export interface UseScoreEntryReturn {
   editScore(): void
 }
 
-export function useScoreEntry(): UseScoreEntryReturn {
+export function useScoreEntry(event: EventWithScores): UseScoreEntryReturn {
   const { currentPlayer } = useAuth()
 
-  const matches = ref<number | null>(null)
-  const wins = ref<number | null>(null)
-  const view = ref<ScoreEntryView>('form')
+  const myScore = event.scores.find((s) => s.playerId === currentPlayer.value?.playerId)
+
+  const matches = ref<number | null>(
+    myScore?.submitted ? myScore.wins + myScore.losses : null,
+  )
+  const wins = ref<number | null>(myScore?.submitted ? myScore.wins : null)
+  const view = ref<ScoreEntryView>(myScore?.submitted ? 'submitted' : 'form')
   const isSubmitting = ref(false)
-  const isAbsent = ref(false)
+  const isAbsent = ref(myScore?.absent ?? false)
   const error = ref<string | null>(null)
 
   const isValid = computed(() =>
@@ -36,26 +41,6 @@ export function useScoreEntry(): UseScoreEntryReturn {
     wins.value >= 0 &&
     wins.value <= matches.value,
   )
-
-  async function initAbsent(): Promise<void> {
-    try {
-      const res = await client.api.events.active.$get()
-      if (!res.ok) return
-      const data = await res.json()
-      const event = (data as { event: { scores: { playerId: string; absent: boolean; submitted: boolean }[] } | null }).event
-      if (!event || !currentPlayer.value) return
-      const scoreRecord = event.scores.find((s) => s.playerId === currentPlayer.value!.playerId)
-      isAbsent.value = scoreRecord?.absent ?? false
-      if (scoreRecord?.submitted) {
-        view.value = 'submitted'
-        const rec = scoreRecord as { wins: number; losses: number; submitted: boolean; absent: boolean; playerId: string }
-        wins.value = rec.wins
-        matches.value = rec.wins + rec.losses
-      }
-    } catch {
-      // isAbsent のデフォルトは false のまま
-    }
-  }
 
   function confirmScore(): void {
     if (!isValid.value) return
@@ -74,9 +59,10 @@ export function useScoreEntry(): UseScoreEntryReturn {
     try {
       const res = await client.api.scores.$post({
         json: {
+          eventId: event.id,
           matches: matches.value!,
           wins: wins.value!,
-        },
+        } as unknown as { matches: number; wins: number },
       })
       if (res.ok) {
         view.value = 'submitted'
@@ -96,8 +82,6 @@ export function useScoreEntry(): UseScoreEntryReturn {
   function editScore(): void {
     view.value = 'form'
   }
-
-  initAbsent()
 
   return {
     matches,

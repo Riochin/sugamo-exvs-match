@@ -3,10 +3,11 @@
     <h2 class="text-lg font-bold text-main mb-4">スコア入力</h2>
 
     <SubmissionProgressBar
-      :completed-count="progressUpdate?.completedCount ?? 0"
-      :total-count="progressUpdate?.totalCount ?? 0"
-      class="mb-4"
+      :completed-count="progressUpdate?.completedCount ?? derivedCompletedCount"
+      :total-count="progressUpdate?.totalCount ?? derivedTotalCount"
+      class="mb-2"
     />
+    <ParticipantList :event="event" class="mb-4" />
 
     <!-- 欠席 -->
     <div v-if="isAbsent" data-testid="absent-message" class="text-center py-6 text-gray-400">
@@ -115,15 +116,25 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useScoreEntry } from '@/composables/useScoreEntry'
 import SubmissionProgressBar from './SubmissionProgressBar.vue'
+import ParticipantList from './ParticipantList.vue'
 import type { ProgressUpdatePayload } from '@/composables/useEventStream'
+import type { EventWithScores } from '@/composables/useAdminEvent'
 
-defineProps<{
-  eventId: string
+const props = defineProps<{
+  event: EventWithScores
   progressUpdate: ProgressUpdatePayload | null
 }>()
 
+const derivedCompletedCount = computed(() =>
+  props.event.scores.filter((s) => !s.absent && s.submitted).length,
+)
+const derivedTotalCount = computed(() =>
+  props.event.scores.filter((s) => !s.absent).length,
+)
+
 const { matches, wins, view, isValid, isSubmitting, isAbsent, error, confirmScore, cancelConfirm, submitScore, editScore } =
-  useScoreEntry()
+  useScoreEntry(props.event)
 </script>
