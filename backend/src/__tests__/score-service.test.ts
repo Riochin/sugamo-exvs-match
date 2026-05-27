@@ -22,7 +22,7 @@ describe('ScoreService', () => {
   })
 
   describe('submitScore', () => {
-    it('アクティブイベントがないとき NO_ACTIVE_EVENT を返す', async () => {
+    it('イベントが存在しないとき EVENT_NOT_FOUND を返す', async () => {
       const { db } = await import('../db/client.js')
 
       vi.mocked(db.select).mockReturnValueOnce({
@@ -31,9 +31,9 @@ describe('ScoreService', () => {
         }),
       } as any)
 
-      const result = await scoreService.submitScore({ playerId: 'p1', matches: 5, wins: 3 })
+      const result = await scoreService.submitScore({ eventId: 'event-1', playerId: 'p1', matches: 5, wins: 3 })
 
-      expect(result).toEqual({ code: 'NO_ACTIVE_EVENT' })
+      expect(result).toEqual({ code: 'EVENT_NOT_FOUND' })
       expect(vi.mocked(db.update)).not.toHaveBeenCalled()
     })
 
@@ -47,7 +47,7 @@ describe('ScoreService', () => {
         }),
       } as any)
 
-      const result = await scoreService.submitScore({ playerId: 'p1', matches: 5, wins: 3 })
+      const result = await scoreService.submitScore({ eventId: 'event-1', playerId: 'p1', matches: 5, wins: 3 })
 
       expect(result).toEqual({ code: 'PHASE_NOT_COLLECTING', current: 'REVEALING' })
       expect(vi.mocked(db.update)).not.toHaveBeenCalled()
@@ -69,7 +69,7 @@ describe('ScoreService', () => {
         }),
       } as any)
 
-      const result = await scoreService.submitScore({ playerId: 'p1', matches: 5, wins: 3 })
+      const result = await scoreService.submitScore({ eventId: 'event-1', playerId: 'p1', matches: 5, wins: 3 })
 
       expect(result).toEqual({ code: 'PLAYER_ABSENT' })
       expect(vi.mocked(db.update)).not.toHaveBeenCalled()
@@ -81,7 +81,7 @@ describe('ScoreService', () => {
       const collectingEvent = { id: 'event-1', heldAt: new Date(), phase: 'COLLECTING', createdAt: new Date() }
       const scoreRecord = { id: 's1', eventId: 'event-1', playerId: 'p1', wins: 0, losses: 0, absent: false, submitted: false }
 
-      // 1st select: active event
+      // 1st select: event by id
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
           where: vi.fn().mockResolvedValue([collectingEvent]),
@@ -110,14 +110,14 @@ describe('ScoreService', () => {
         }),
       } as any)
 
-      const result = await scoreService.submitScore({ playerId: 'p1', matches: 5, wins: 3 })
+      const result = await scoreService.submitScore({ eventId: 'event-1', playerId: 'p1', matches: 5, wins: 3 })
 
       expect('code' in result).toBe(false)
       expect(setMock).toHaveBeenCalledWith({ wins: 3, losses: 2, submitted: true })
       expect(vi.mocked(hub.broadcast)).toHaveBeenCalledWith('event-1', 'progress_update', { completedCount: 1, totalCount: 3 })
     })
 
-    it('全員完了時に events.phase を STAR_VOTING に更新して phase_update をブロードキャストする', async () => {
+    it('全員完了時に allCompleted=true を返し phase_update はブロードキャストしない', async () => {
       const { db } = await import('../db/client.js')
       const { hub } = await import('../routes/stream.js')
       const collectingEvent = { id: 'event-1', heldAt: new Date(), phase: 'COLLECTING', createdAt: new Date() }
@@ -133,10 +133,9 @@ describe('ScoreService', () => {
           where: vi.fn().mockResolvedValue([scoreRecord]),
         }),
       } as any)
-      // 1st update: score submission
-      const scoreWhereMock = vi.fn().mockResolvedValue({ rowsAffected: 1 })
-      const scoreSetMock = vi.fn().mockReturnValue({ where: scoreWhereMock })
-      vi.mocked(db.update).mockReturnValueOnce({ set: scoreSetMock } as any)
+      vi.mocked(db.update).mockReturnValueOnce({
+        set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue({ rowsAffected: 1 }) }),
+      } as any)
       // completed = total = 3
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
@@ -148,26 +147,22 @@ describe('ScoreService', () => {
           where: vi.fn().mockResolvedValue([{ count: 3 }]),
         }),
       } as any)
-      // 2nd update: phase → STAR_VOTING
-      const phaseWhereMock = vi.fn().mockResolvedValue({ rowsAffected: 1 })
-      const phaseSetMock = vi.fn().mockReturnValue({ where: phaseWhereMock })
-      vi.mocked(db.update).mockReturnValueOnce({ set: phaseSetMock } as any)
 
-      const result = await scoreService.submitScore({ playerId: 'p3', matches: 4, wins: 2 })
+      const result = await scoreService.submitScore({ eventId: 'event-1', playerId: 'p3', matches: 4, wins: 2 })
 
       expect('code' in result).toBe(false)
       if (!('code' in result)) {
         expect(result.allCompleted).toBe(true)
       }
-      expect(phaseSetMock).toHaveBeenCalledWith({ phase: 'STAR_VOTING' })
-      expect(vi.mocked(hub.broadcast)).toHaveBeenCalledWith(
-        'event-1',
-        'phase_update',
-        { eventId: 'event-1', phase: 'STAR_VOTING' },
-      )
+      // progress_update のみ、phase_update は呼ばれない
+      expect(vi.mocked(hub.broadcast)).toHaveBeenCalledTimes(1)
+      expect(vi.mocked(hub.broadcast)).toHaveBeenCalledWith('event-1', 'progress_update', { completedCount: 3, totalCount: 3 })
+      expect(vi.mocked(hub.broadcast)).not.toHaveBeenCalledWith('event-1', 'phase_update', expect.anything())
+      // フェーズ変更の DB 更新も起きない
+      expect(vi.mocked(db.update)).toHaveBeenCalledTimes(1)
     })
 
-    it('一部未完了時は result_ready が呼ばれない', async () => {
+    it('一部未完了時は phase_update が呼ばれない', async () => {
       const { db } = await import('../db/client.js')
       const { hub } = await import('../routes/stream.js')
       const collectingEvent = { id: 'event-1', heldAt: new Date(), phase: 'COLLECTING', createdAt: new Date() }
@@ -200,7 +195,7 @@ describe('ScoreService', () => {
         }),
       } as any)
 
-      await scoreService.submitScore({ playerId: 'p1', matches: 5, wins: 3 })
+      await scoreService.submitScore({ eventId: 'event-1', playerId: 'p1', matches: 5, wins: 3 })
 
       expect(vi.mocked(hub.broadcast)).toHaveBeenCalledTimes(1)
       expect(vi.mocked(hub.broadcast)).not.toHaveBeenCalledWith('event-1', 'phase_update', expect.anything())

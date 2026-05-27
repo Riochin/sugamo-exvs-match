@@ -208,7 +208,7 @@ describe('統合テスト: POST /api/stars → star-service → DB', () => {
   })
 })
 
-describe('統合テスト: POST /api/scores → score-service → DB（STAR_VOTING 自動遷移）', () => {
+describe('統合テスト: POST /api/scores → score-service → DB（全員完了時の挙動）', () => {
   beforeEach(async () => {
     process.env.JWT_SECRET = 'test-secret-key'
     vi.clearAllMocks()
@@ -216,13 +216,13 @@ describe('統合テスト: POST /api/scores → score-service → DB（STAR_VOTI
     vi.mocked(hub.broadcast).mockResolvedValue(undefined)
   })
 
-  it('スコア全員完了後: events.phase が STAR_VOTING に自動遷移し SSE がブロードキャストされる', async () => {
+  it('スコア全員完了後: allCompleted=true を返し phase_update はブロードキャストしない', async () => {
     const { db } = await import('../db/client.js')
     const { hub } = await import('../routes/stream.js')
 
     const activeEvent = { id: 'event-1', phase: 'COLLECTING', heldAt: new Date(), createdAt: new Date() }
 
-    // select active event
+    // select event by id
     vi.mocked(db.select).mockReturnValueOnce({
       from: vi.fn().mockReturnValue({
         where: vi.fn().mockResolvedValue([activeEvent]),
@@ -252,21 +252,20 @@ describe('統合テスト: POST /api/scores → score-service → DB（STAR_VOTI
       }),
     } as any)
 
-    // phase update to STAR_VOTING
-    const phaseWhereMock = vi.fn().mockResolvedValue(undefined)
-    const phaseSetMock = vi.fn().mockReturnValue({ where: phaseWhereMock })
-    vi.mocked(db.update).mockReturnValueOnce({ set: phaseSetMock } as any)
-
     const token = await playerToken()
     const app = buildScoresApp()
     const res = await app.request('/api/scores', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
-      body: JSON.stringify({ matches: 10, wins: 5 }),
+      body: JSON.stringify({ eventId: 'event-1', matches: 10, wins: 5 }),
     })
 
     expect(res.status).toBe(200)
-    expect(phaseSetMock).toHaveBeenCalledWith({ phase: 'STAR_VOTING' })
-    expect(vi.mocked(hub.broadcast)).toHaveBeenCalledWith('event-1', 'phase_update', { eventId: 'event-1', phase: 'STAR_VOTING' })
+    // 自動遷移しないため DB 更新は1回（スコア更新のみ）
+    expect(vi.mocked(db.update)).toHaveBeenCalledTimes(1)
+    // progress_update のみ、phase_update はブロードキャストしない
+    expect(vi.mocked(hub.broadcast)).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(hub.broadcast)).toHaveBeenCalledWith('event-1', 'progress_update', { completedCount: 5, totalCount: 5 })
+    expect(vi.mocked(hub.broadcast)).not.toHaveBeenCalledWith('event-1', 'phase_update', expect.anything())
   })
 })

@@ -68,7 +68,7 @@ describe('EventService', () => {
       expect(vi.mocked(db.insert)).toHaveBeenCalledTimes(2)
     })
 
-    it('進行中大会あり → ACTIVE_EVENT_EXISTS エラーを返す', async () => {
+    it('STAR_VOTING 大会あり → ACTIVE_EVENT_EXISTS エラーを返す', async () => {
       const { db } = await import('../db/client.js')
 
       vi.mocked(db.select).mockReturnValueOnce({
@@ -82,6 +82,37 @@ describe('EventService', () => {
       expect(result).toEqual({ code: 'ACTIVE_EVENT_EXISTS' })
       expect(vi.mocked(db.insert)).not.toHaveBeenCalled()
     })
+
+    it('COLLECTING 大会のみ存在する → 新規大会を作成できる', async () => {
+      const { db } = await import('../db/client.js')
+
+      const heldAt = new Date('2026-06-01T10:00:00.000Z')
+      const newEvent = { id: 'event-2', name: '新規大会', hasPromotionRelegation: false, venue: null, description: null, heldAt, phase: 'COLLECTING', createdAt: new Date() }
+
+      // 1st select: check STAR_VOTING/REVEALING → []（COLLECTINGはブロックしない）
+      vi.mocked(db.select).mockReturnValueOnce({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue([]),
+        }),
+      } as any)
+      // 2nd select: get all players
+      vi.mocked(db.select).mockReturnValueOnce({
+        from: vi.fn().mockResolvedValue([]),
+      } as any)
+      // insert event
+      vi.mocked(db.insert).mockReturnValueOnce({
+        values: vi.fn().mockReturnValue({
+          returning: vi.fn().mockResolvedValue([newEvent]),
+        }),
+      } as any)
+
+      const result = await eventService.createEvent({ heldAt, name: '新規大会', hasPromotionRelegation: false })
+
+      expect('code' in result).toBe(false)
+      if (!('code' in result)) {
+        expect(result.id).toBe('event-2')
+      }
+    })
   })
 
   describe('advancePhase', () => {
@@ -92,9 +123,16 @@ describe('EventService', () => {
       const eventId = 'event-1'
       const collectingEvent = { id: eventId, heldAt: new Date(), phase: 'COLLECTING', createdAt: new Date() }
 
+      // 1st select: get the event
       vi.mocked(db.select).mockReturnValueOnce({
         from: vi.fn().mockReturnValue({
           where: vi.fn().mockResolvedValue([collectingEvent]),
+        }),
+      } as any)
+      // 2nd select: ceremony check → no ceremony in progress
+      vi.mocked(db.select).mockReturnValueOnce({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue([]),
         }),
       } as any)
       vi.mocked(db.update).mockReturnValueOnce({
@@ -108,6 +146,33 @@ describe('EventService', () => {
       expect(result).toEqual({ phase: 'STAR_VOTING' })
       expect(vi.mocked(db.update)).toHaveBeenCalledTimes(1)
       expect(vi.mocked(hub.broadcast)).toHaveBeenCalledWith(eventId, 'phase_update', { eventId, phase: 'STAR_VOTING' })
+    })
+
+    it('COLLECTING → STAR_VOTING: 別の STAR_VOTING 大会が存在するとき CEREMONY_IN_PROGRESS を返す', async () => {
+      const { db } = await import('../db/client.js')
+      const { hub } = await import('../routes/stream.js')
+
+      const eventId = 'event-1'
+      const collectingEvent = { id: eventId, heldAt: new Date(), phase: 'COLLECTING', createdAt: new Date() }
+
+      // 1st select: get the event
+      vi.mocked(db.select).mockReturnValueOnce({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue([collectingEvent]),
+        }),
+      } as any)
+      // 2nd select: ceremony check → another STAR_VOTING event exists
+      vi.mocked(db.select).mockReturnValueOnce({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockResolvedValue([{ id: 'event-2' }]),
+        }),
+      } as any)
+
+      const result = await eventService.advancePhase({ eventId })
+
+      expect(result).toEqual({ code: 'CEREMONY_IN_PROGRESS' })
+      expect(vi.mocked(db.update)).not.toHaveBeenCalled()
+      expect(vi.mocked(hub.broadcast)).not.toHaveBeenCalled()
     })
 
     it('DONE から遷移要求 → INVALID_PHASE_TRANSITION エラーを返す', async () => {

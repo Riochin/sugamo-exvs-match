@@ -46,7 +46,7 @@ describe('POST /api/scores', () => {
     const res = await app.request('/api/scores', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
-      body: JSON.stringify({ matches: 5, wins: 3 }),
+      body: JSON.stringify({ eventId: 'event-1', matches: 5, wins: 3 }),
     })
 
     expect(res.status).toBe(200)
@@ -60,10 +60,22 @@ describe('POST /api/scores', () => {
     const res = await app.request('/api/scores', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ matches: 5, wins: 3 }),
+      body: JSON.stringify({ eventId: 'event-1', matches: 5, wins: 3 }),
     })
 
     expect(res.status).toBe(401)
+  })
+
+  it('eventId がないとバリデーションエラー 400 が返る', async () => {
+    const token = await playerToken()
+    const app = buildApp()
+    const res = await app.request('/api/scores', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
+      body: JSON.stringify({ matches: 5, wins: 3 }),
+    })
+
+    expect(res.status).toBe(400)
   })
 
   it('wins > matches のバリデーションエラーで 400 が返る', async () => {
@@ -72,7 +84,7 @@ describe('POST /api/scores', () => {
     const res = await app.request('/api/scores', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
-      body: JSON.stringify({ matches: 3, wins: 5 }),
+      body: JSON.stringify({ eventId: 'event-1', matches: 3, wins: 5 }),
     })
 
     expect(res.status).toBe(400)
@@ -84,7 +96,7 @@ describe('POST /api/scores', () => {
     const res = await app.request('/api/scores', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
-      body: JSON.stringify({ matches: -1, wins: 0 }),
+      body: JSON.stringify({ eventId: 'event-1', matches: -1, wins: 0 }),
     })
 
     expect(res.status).toBe(400)
@@ -99,7 +111,7 @@ describe('POST /api/scores', () => {
     const res = await app.request('/api/scores', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
-      body: JSON.stringify({ matches: 5, wins: 3 }),
+      body: JSON.stringify({ eventId: 'event-1', matches: 5, wins: 3 }),
     })
 
     expect(res.status).toBe(409)
@@ -114,22 +126,22 @@ describe('POST /api/scores', () => {
     const res = await app.request('/api/scores', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
-      body: JSON.stringify({ matches: 5, wins: 3 }),
+      body: JSON.stringify({ eventId: 'event-1', matches: 5, wins: 3 }),
     })
 
     expect(res.status).toBe(409)
   })
 
-  it('NO_ACTIVE_EVENT エラーで 404 が返る', async () => {
+  it('EVENT_NOT_FOUND エラーで 404 が返る', async () => {
     const { scoreService } = await import('../services/score-service.js')
-    vi.mocked(scoreService.submitScore).mockResolvedValue({ code: 'NO_ACTIVE_EVENT' })
+    vi.mocked(scoreService.submitScore).mockResolvedValue({ code: 'EVENT_NOT_FOUND' })
 
     const token = await playerToken()
     const app = buildApp()
     const res = await app.request('/api/scores', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
-      body: JSON.stringify({ matches: 5, wins: 3 }),
+      body: JSON.stringify({ eventId: 'event-1', matches: 5, wins: 3 }),
     })
 
     expect(res.status).toBe(404)
@@ -144,7 +156,7 @@ describe('POST /api/scores', () => {
     const res = await app.request('/api/scores', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Cookie: `token=${token}` },
-      body: JSON.stringify({ matches: 5, wins: 3 }),
+      body: JSON.stringify({ eventId: 'event-1', matches: 5, wins: 3 }),
     })
 
     expect(res.status).toBe(404)

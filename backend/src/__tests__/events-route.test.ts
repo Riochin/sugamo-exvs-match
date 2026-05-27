@@ -7,7 +7,7 @@ import type { EventPhase } from '../services/event-service.js'
 vi.mock('../services/event-service.js', () => ({
   eventService: {
     createEvent: vi.fn(),
-    getActiveEvent: vi.fn(),
+    getActiveEvents: vi.fn(),
     listDoneEvents: vi.fn(),
     setAbsent: vi.fn(),
     advancePhase: vi.fn(),
@@ -153,9 +153,9 @@ describe('GET /api/events/active', () => {
     vi.clearAllMocks()
   })
 
-  it('進行中大会なしで { event: null } を返す', async () => {
+  it('進行中大会なしで { events: [] } を返す', async () => {
     const { eventService } = await import('../services/event-service.js')
-    vi.mocked(eventService.getActiveEvent).mockResolvedValue(null)
+    vi.mocked(eventService.getActiveEvents).mockResolvedValue([])
 
     const token = await playerToken()
     const app = buildApp()
@@ -165,10 +165,10 @@ describe('GET /api/events/active', () => {
 
     expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body).toEqual({ event: null })
+    expect(body).toEqual({ events: [] })
   })
 
-  it('進行中大会ありで EventWithScores を返す', async () => {
+  it('進行中大会ありで EventWithScores の配列を返す', async () => {
     const { eventService } = await import('../services/event-service.js')
     const mockEvent = {
       id: 'event-1',
@@ -180,7 +180,7 @@ describe('GET /api/events/active', () => {
       heldAt: '2026-06-01T10:00:00.000Z',
       scores: [{ playerId: 'p1', playerName: 'Alice', wins: 0, losses: 0, absent: false, submitted: false }],
     }
-    vi.mocked(eventService.getActiveEvent).mockResolvedValue(mockEvent)
+    vi.mocked(eventService.getActiveEvents).mockResolvedValue([mockEvent])
 
     const token = await playerToken()
     const app = buildApp()
@@ -190,8 +190,9 @@ describe('GET /api/events/active', () => {
 
     expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body.event.id).toBe('event-1')
-    expect(body.event.scores).toHaveLength(1)
+    expect(body.events).toHaveLength(1)
+    expect(body.events[0].id).toBe('event-1')
+    expect(body.events[0].scores).toHaveLength(1)
   })
 
   it('認証なしで 401 を返す', async () => {
@@ -342,6 +343,20 @@ describe('PATCH /api/events/:id/phase', () => {
   it('不正なフェーズ遷移で 409 を返す', async () => {
     const { eventService } = await import('../services/event-service.js')
     vi.mocked(eventService.advancePhase).mockResolvedValue({ code: 'INVALID_PHASE_TRANSITION', current: 'DONE' })
+
+    const token = await adminToken()
+    const app = buildApp()
+    const res = await app.request('/api/events/event-1/phase', {
+      method: 'PATCH',
+      headers: { Cookie: `token=${token}` },
+    })
+
+    expect(res.status).toBe(409)
+  })
+
+  it('CEREMONY_IN_PROGRESS エラーで 409 を返す', async () => {
+    const { eventService } = await import('../services/event-service.js')
+    vi.mocked(eventService.advancePhase).mockResolvedValue({ code: 'CEREMONY_IN_PROGRESS' })
 
     const token = await adminToken()
     const app = buildApp()
